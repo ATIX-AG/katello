@@ -13,13 +13,15 @@
  * @requires PuppetModule
  * @requires DockerManifest
  * @requires OstreeBranch
+ * @requires File
+ * @requires Deb
  *
  * @description
  *   Provides the functionality for the repository details pane.
  */
 angular.module('Bastion.repositories').controller('RepositoryManageContentController',
-    ['$scope', '$state', 'translate', 'Notification', 'Nutupane', 'Repository', 'Package', 'PackageGroup', 'PuppetModule', 'DockerManifest', 'OstreeBranch', 'File',
-    function ($scope, $state, translate, Notification, Nutupane, Repository, Package, PackageGroup, PuppetModule, DockerManifest, OstreeBranch, File) {
+    ['$scope', '$state', 'translate', 'Notification', 'Nutupane', 'Repository', 'Package', 'PackageGroup', 'PuppetModule', 'DockerManifest', 'OstreeBranch', 'File', 'Deb',
+    function ($scope, $state, translate, Notification, Nutupane, Repository, Package, PackageGroup, PuppetModule, DockerManifest, OstreeBranch, File, Deb) {
         var currentState, contentTypes;
 
         function success(response, selected) {
@@ -54,7 +56,8 @@ angular.module('Bastion.repositories').controller('RepositoryManageContentContro
             'puppet-modules': { type: PuppetModule },
             'docker-manifests': { type: DockerManifest },
             'ostree-branches': { type: OstreeBranch },
-            'files': {type: File}
+            'files': { type: File },
+            'debs': { type: Deb }
         };
 
         $scope.contentNutupane = new Nutupane(contentTypes[currentState].type, {

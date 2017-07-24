@@ -104,6 +104,15 @@ Foreman::Plugin.register :katello do
          :turbolinks => false
 
     menu :top_menu,
+         :debs,
+         :caption => N_('Deb Packages'),
+         :url => '/debs',
+         :url_hash => {:controller => 'katello/api/v2/debs',
+                       :action => 'index'},
+         :engine => Katello::Engine,
+         :turbolinks => false
+
+    menu :top_menu,
          :puppet_modules,
          :caption => N_('Puppet Modules'),
          :url => '/puppet_modules',

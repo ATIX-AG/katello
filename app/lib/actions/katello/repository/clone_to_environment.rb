@@ -23,6 +23,9 @@ module Actions
             if repository.yum?
               plan_action(Repository::CloneYumContent, repository, clone, [], false,
                           :force_yum_metadata_regeneration => options[:force_yum_metadata_regeneration])
+            elsif repository.deb?
+              plan_action(Repository::CloneDebContent, repository, clone, [], false,
+                          :force_yum_metadata_regeneration => options[:force_yum_metadata_regeneration])
             elsif repository.docker?
               plan_action(Repository::CloneDockerContent, repository, clone, [])
             elsif repository.ostree?

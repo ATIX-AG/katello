@@ -19,6 +19,7 @@ module Katello
     include Ext::LabelFromName
     include Katello::Engine.routes.url_helpers
 
+    DEB_TYPE = 'deb'.freeze
     YUM_TYPE = 'yum'.freeze
     FILE_TYPE = 'file'.freeze
     PUPPET_TYPE = 'puppet'.freeze
@@ -26,7 +27,7 @@ module Katello
     OSTREE_TYPE = 'ostree'.freeze
 
     CHECKSUM_TYPES = %w(sha1 sha256).freeze
-    SUBSCRIBABLE_TYPES = [YUM_TYPE, OSTREE_TYPE].freeze
+    SUBSCRIBABLE_TYPES = [YUM_TYPE, OSTREE_TYPE, DEB_TYPE].freeze
 
     OSTREE_UPSTREAM_SYNC_POLICY_LATEST = "latest".freeze
     OSTREE_UPSTREAM_SYNC_POLICY_ALL = "all".freeze
@@ -66,6 +67,9 @@ module Katello
 
     has_many :repository_ostree_branches, :class_name => "Katello::RepositoryOstreeBranch", :dependent => :delete_all
     has_many :ostree_branches, :through => :repository_ostree_branches
+
+    has_many :repository_debs, :class_name => "Katello::RepositoryDeb", :dependent => :delete_all
+    has_many :debs, :through => :repository_debs
 
     has_many :content_facet_repositories, :class_name => "Katello::ContentFacetRepository", :dependent => :destroy
     has_many :content_facets, :through => :content_facet_repositories
@@ -127,6 +131,7 @@ module Katello
     scope :has_url, -> { where('url IS NOT NULL') }
     scope :in_default_view, -> { joins(:content_view_version => :content_view).where("#{Katello::ContentView.table_name}.default" => true) }
 
+    scope :deb_type, -> { where(:content_type => DEB_TYPE) }
     scope :yum_type, -> { where(:content_type => YUM_TYPE) }
     scope :file_type, -> { where(:content_type => FILE_TYPE) }
     scope :puppet_type, -> { where(:content_type => PUPPET_TYPE) }
@@ -620,6 +625,8 @@ module Katello
         self.ostree_branches -= units
       elsif file?
         self.files -= units
+      elsif deb?
+        self.debs -= units
       elsif docker?
         remove_docker_content(units)
       end
@@ -663,6 +670,8 @@ module Katello
         self.ostree_branches
       elsif file?
         self.files
+      elsif deb?
+        self.debs
       else
         fail "Content type not supported for removal"
       end
