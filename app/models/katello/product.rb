@@ -13,6 +13,9 @@ module Katello
     belongs_to :provider, :inverse_of => :products
     belongs_to :sync_plan, :inverse_of => :products, :class_name => 'Katello::SyncPlan'
     belongs_to :gpg_key, :inverse_of => :products
+    belongs_to :ssl_ca_cert, :class_name => "Katello::GpgKey", :inverse_of => :ssl_ca_products
+    belongs_to :ssl_client_cert, :class_name => "Katello::GpgKey", :inverse_of => :ssl_client_products
+    belongs_to :ssl_client_key, :class_name => "Katello::GpgKey", :inverse_of => :ssl_key_products
     has_many :repositories, :class_name => "Katello::Repository", :dependent => :restrict_with_exception
 
     has_many :subscription_products, :class_name => "Katello::SubscriptionProduct", :dependent => :destroy
@@ -25,6 +28,7 @@ module Katello
     validates_with Validators::KatelloLabelFormatValidator, :attributes => :label
     validates_with Validators::ProductUniqueAttributeValidator, :attributes => :name
     validates_with Validators::ProductUniqueAttributeValidator, :attributes => :label
+    validates_with Validators::GpgKeyContentTypeValidator
 
     scoped_search :on => :name, :complete_value => true
     scoped_search :on => :organization_id, :complete_value => true, :only_explicit => true, :validator => ScopedSearch::Validators::INTEGER
