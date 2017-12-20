@@ -223,6 +223,7 @@ module Katello
                            'katello/api/v2/products' => [:index, :show, :auto_complete_search],
                            'katello/api/v2/repositories' => [:index, :show, :repository_types, :auto_complete_search, :cancel],
                            'katello/api/v2/packages' => [:index, :show, :auto_complete_search, :auto_complete_name, :auto_complete_arch],
+                           'katello/api/v2/debs' => [:index, :show, :auto_complete_search],
                            'katello/api/v2/package_groups' => [:index, :show, :auto_complete_search],
                            'katello/api/v2/docker_manifests' => [:index, :show, :auto_complete_search],
                            'katello/api/v2/docker_tags' => [:index, :show, :auto_complete_search, :auto_complete_name],
