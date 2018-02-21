@@ -1,4 +1,4 @@
-class AddDeb < ActiveRecord::Migration[4.2]
+class AddDeb < ActiveRecord::Migration
   def up
     create_table "katello_debs" do |t|
       t.string "uuid", :null => false, :limit => 255
