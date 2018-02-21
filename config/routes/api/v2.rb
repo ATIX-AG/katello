@@ -55,10 +55,7 @@ Katello::Engine.routes.draw do
         end
 
         api_resources :content_credentials, :only => [:index, :show, :create, :update, :destroy] do
-          member do
-            get :content
-            post :content, :action => :set_content
-          end
+          post :content, :on => :member
           get :auto_complete_search, :on => :collection
         end
 

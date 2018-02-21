@@ -169,7 +169,7 @@ module Katello
     def content_credential_permissions
       @plugin.permission :view_content_credentials,
                          {
-                           'katello/api/v2/content_credentials' => [:index, :show, :content, :auto_complete_search]
+                           'katello/api/v2/content_credentials' => [:index, :show, :auto_complete_search]
                          },
                          :resource_type => 'Katello::GpgKey'
       @plugin.permission :create_content_credentials,
@@ -179,7 +179,7 @@ module Katello
                          :resource_type => 'Katello::GpgKey'
       @plugin.permission :edit_content_credentials,
                          {
-                           'katello/api/v2/content_credentials' => [:update, :set_content]
+                           'katello/api/v2/content_credentials' => [:update, :content]
                          },
                          :resource_type => 'Katello::GpgKey'
       @plugin.permission :destroy_content_credentials,

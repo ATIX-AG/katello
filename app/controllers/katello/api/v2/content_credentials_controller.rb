@@ -3,8 +3,8 @@ module Katello
     include Katello::Concerns::FilteredAutoCompleteSearch
     before_action :authorize
     before_action :find_organization, :only => [:create, :index, :auto_complete_search]
-    before_action :find_content_credential, :only => [:show, :update, :destroy, :content, :set_content]
-    skip_before_action :check_content_type, :only => [:create, :content, :set_content]
+    before_action :find_content_credential, :only => [:show, :update, :destroy, :content]
+    skip_before_action :check_content_type, :only => [:create, :content]
 
     def resource_class
       Katello::GpgKey
@@ -80,16 +80,10 @@ module Katello
       respond_for_destroy
     end
 
-    api :GET, "/content_credentials/:id/content", N_("Return the content of a content credential, used directly by yum")
-    param :id, :number, :required => true
-    def content
-      render(:plain => @content_credential.content, :layout => false)
-    end
-
     api :POST, "/content_credentials/:id/content", N_("Upload content credential contents")
     param :id, :number, :desc => N_("content credential numeric identifier"), :required => true
     param :content, File, :desc => N_("file contents"), :required => true
-    def set_content
+    def content
       filepath = params.try(:[], :content).try(:path)
 
       if filepath
