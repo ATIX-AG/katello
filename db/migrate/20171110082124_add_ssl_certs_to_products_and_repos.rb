@@ -1,4 +1,4 @@
-class AddSslCertsToProductsAndRepos < ActiveRecord::Migration[4.2]
+class AddSslCertsToProductsAndRepos < ActiveRecord::Migration
   def up
     add_column :katello_products, :ssl_ca_cert_id, :integer, :null => true
     add_index :katello_products, :ssl_ca_cert_id
