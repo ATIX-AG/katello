@@ -234,10 +234,16 @@ module Katello
         :content_type => 'yum',
         :arch => 'noarch',
         :unprotected => true,
-        :gpg_key => nil
+        :gpg_key => nil,
+        :ssl_ca_cert => nil,
+        :ssl_client_cert => nil,
+        :ssl_client_key => nil
       ).returns(@repository)
 
       product.expects(:gpg_key).returns(nil)
+      product.expects(:ssl_ca_cert).returns(nil)
+      product.expects(:ssl_client_cert).returns(nil)
+      product.expects(:ssl_client_key).returns(nil)
       product.expects(:organization).returns(@organization)
       product.expects(:redhat?).returns(false)
       assert_sync_task(::Actions::Katello::Repository::Create, @repository, false, true)
@@ -260,10 +266,16 @@ module Katello
           :content_type => 'yum',
           :arch => 'x86_64',
           :unprotected => true,
-          :gpg_key => nil
+          :gpg_key => nil,
+          :ssl_ca_cert => nil,
+          :ssl_client_cert => nil,
+          :ssl_client_key => nil
       ).returns(@repository)
 
       product.expects(:gpg_key).returns(nil)
+      product.expects(:ssl_ca_cert).returns(nil)
+      product.expects(:ssl_client_cert).returns(nil)
+      product.expects(:ssl_client_key).returns(nil)
       product.expects(:organization).returns(@organization)
       product.expects(:redhat?).returns(false)
       assert_sync_task(::Actions::Katello::Repository::Create, @repository, false, true)
@@ -287,10 +299,16 @@ module Katello
         :content_type => 'yum',
         :arch => 'noarch',
         :unprotected => true,
-        :gpg_key => nil
+        :gpg_key => nil,
+        :ssl_ca_cert => nil,
+        :ssl_client_cert => nil,
+        :ssl_client_key => nil
       ).returns(@repository)
 
       product.expects(:gpg_key).returns(nil)
+      product.expects(:ssl_ca_cert).returns(nil)
+      product.expects(:ssl_client_cert).returns(nil)
+      product.expects(:ssl_client_key).returns(nil)
       product.expects(:organization).returns(@organization)
       product.expects(:redhat?).returns(false)
       assert_sync_task(::Actions::Katello::Repository::Create, @repository, false, true)
@@ -315,10 +333,48 @@ module Katello
         :content_type => 'yum',
         :arch => 'noarch',
         :unprotected => true,
-        :gpg_key => key
+        :gpg_key => key,
+        :ssl_ca_cert => nil,
+        :ssl_client_cert => nil,
+        :ssl_client_key => nil
       ).returns(@repository)
 
       product.expects(:gpg_key).returns(key)
+      product.expects(:ssl_ca_cert).returns(nil)
+      product.expects(:ssl_client_cert).returns(nil)
+      product.expects(:ssl_client_key).returns(nil)
+      product.expects(:organization).returns(@organization)
+      product.expects(:redhat?).returns(false)
+      assert_sync_task(::Actions::Katello::Repository::Create, @repository, false, true)
+
+      Product.stubs(:find).returns(product)
+
+      post :create, params: { :name => 'Fedora Repository', :product_id => @product.id, :url => 'http://www.google.com', :content_type => 'yum' }
+
+      assert_response :success
+      assert_template 'api/v2/repositories/show'
+    end
+
+    def test_create_with_cert
+      cert = GpgKey.find(katello_gpg_keys('fedora_cert').id)
+      product = mock
+      product.expects(:add_repo).with(
+        :label => 'Fedora_Repository',
+        :name => 'Fedora Repository',
+        :url => 'http://www.google.com',
+        :content_type => 'yum',
+        :arch => 'noarch',
+        :unprotected => true,
+        :gpg_key => nil,
+        :ssl_ca_cert => nil,
+        :ssl_client_cert => cert,
+        :ssl_client_key => nil
+      ).returns(@repository)
+
+      product.expects(:gpg_key).returns(nil)
+      product.expects(:ssl_ca_cert).returns(nil)
+      product.expects(:ssl_client_cert).returns(cert)
+      product.expects(:ssl_client_key).returns(nil)
       product.expects(:organization).returns(@organization)
       product.expects(:redhat?).returns(false)
       assert_sync_task(::Actions::Katello::Repository::Create, @repository, false, true)
@@ -344,10 +400,16 @@ module Katello
         :arch => 'noarch',
         :unprotected => true,
         :gpg_key => nil,
+        :ssl_ca_cert => nil,
+        :ssl_client_cert => nil,
+        :ssl_client_key => nil,
         :checksum_type => 'sha256'
       ).returns(@repository)
 
       product.expects(:gpg_key).returns(nil)
+      product.expects(:ssl_ca_cert).returns(nil)
+      product.expects(:ssl_client_cert).returns(nil)
+      product.expects(:ssl_client_key).returns(nil)
       product.expects(:organization).returns(@organization)
       product.expects(:redhat?).returns(false)
       assert_sync_task(::Actions::Katello::Repository::Create, @repository, false, true)
@@ -373,10 +435,16 @@ module Katello
         :arch => 'noarch',
         :unprotected => true,
         :gpg_key => nil,
+        :ssl_ca_cert => nil,
+        :ssl_client_cert => nil,
+        :ssl_client_key => nil,
         :download_policy => 'on_demand'
       ).returns(@repository)
 
       product.expects(:gpg_key).returns(nil)
+      product.expects(:ssl_ca_cert).returns(nil)
+      product.expects(:ssl_client_cert).returns(nil)
+      product.expects(:ssl_client_key).returns(nil)
       product.expects(:organization).returns(@organization)
       product.expects(:redhat?).returns(false)
       assert_sync_task(::Actions::Katello::Repository::Create, @repository, false, true)
@@ -401,10 +469,16 @@ module Katello
           :content_type => 'yum',
           :arch => 'noarch',
           :unprotected => false,
-          :gpg_key => nil
+          :gpg_key => nil,
+          :ssl_ca_cert => nil,
+          :ssl_client_cert => nil,
+          :ssl_client_key => nil
       ).returns(@repository)
 
       product.expects(:gpg_key).returns(nil)
+      product.expects(:ssl_ca_cert).returns(nil)
+      product.expects(:ssl_client_cert).returns(nil)
+      product.expects(:ssl_client_key).returns(nil)
       product.expects(:organization).returns(@organization)
       product.expects(:redhat?).returns(false)
       assert_sync_task(::Actions::Katello::Repository::Create, @repository, false, true)
@@ -430,10 +504,16 @@ module Katello
           :content_type => 'yum',
           :arch => 'noarch',
           :unprotected => false,
-          :gpg_key => nil
+          :gpg_key => nil,
+          :ssl_ca_cert => nil,
+          :ssl_client_cert => nil,
+          :ssl_client_key => nil
       ).returns(@repository)
 
       product.expects(:gpg_key).returns(nil)
+      product.expects(:ssl_ca_cert).returns(nil)
+      product.expects(:ssl_client_cert).returns(nil)
+      product.expects(:ssl_client_key).returns(nil)
       product.expects(:organization).returns(@organization)
       product.expects(:redhat?).returns(false)
       @repository.expects(:mirror_on_sync=).with(mirror_on_sync)
@@ -460,10 +540,16 @@ module Katello
           :content_type => 'yum',
           :arch => 'noarch',
           :unprotected => false,
-          :gpg_key => nil
+          :gpg_key => nil,
+          :ssl_ca_cert => nil,
+          :ssl_client_cert => nil,
+          :ssl_client_key => nil
       ).returns(@repository)
 
       product.expects(:gpg_key).returns(nil)
+      product.expects(:ssl_ca_cert).returns(nil)
+      product.expects(:ssl_client_cert).returns(nil)
+      product.expects(:ssl_client_key).returns(nil)
       product.expects(:organization).returns(@organization)
       product.expects(:redhat?).returns(false)
       @repository.expects(:verify_ssl_on_sync=).with(verify_ssl_on_sync)
@@ -492,10 +578,16 @@ module Katello
           :content_type => 'yum',
           :arch => 'noarch',
           :unprotected => false,
-          :gpg_key => nil
+          :gpg_key => nil,
+          :ssl_ca_cert => nil,
+          :ssl_client_cert => nil,
+          :ssl_client_key => nil
       ).returns(@repository)
 
       product.expects(:gpg_key).returns(nil)
+      product.expects(:ssl_ca_cert).returns(nil)
+      product.expects(:ssl_client_cert).returns(nil)
+      product.expects(:ssl_client_key).returns(nil)
       product.expects(:organization).returns(@organization)
       product.expects(:redhat?).returns(false)
       @repository.expects(:upstream_username=).with(upstream_username)
@@ -524,10 +616,16 @@ module Katello
           :content_type => 'docker',
           :arch => 'noarch',
           :unprotected => true,
-          :gpg_key => nil
+          :gpg_key => nil,
+          :ssl_ca_cert => nil,
+          :ssl_client_cert => nil,
+          :ssl_client_key => nil
       ).returns(@repository)
 
       product.expects(:gpg_key).returns(nil)
+      product.expects(:ssl_ca_cert).returns(nil)
+      product.expects(:ssl_client_cert).returns(nil)
+      product.expects(:ssl_client_key).returns(nil)
       product.expects(:organization).returns(@organization)
       product.expects(:redhat?).returns(false)
       assert_sync_task(::Actions::Katello::Repository::Create, @repository, false, true)
@@ -554,10 +652,16 @@ module Katello
           :content_type => 'ostree',
           :arch => 'noarch',
           :unprotected => true,
-          :gpg_key => nil
+          :gpg_key => nil,
+          :ssl_ca_cert => nil,
+          :ssl_client_cert => nil,
+          :ssl_client_key => nil
       ).returns(repository)
 
       product.expects(:gpg_key).returns(nil)
+      product.expects(:ssl_ca_cert).returns(nil)
+      product.expects(:ssl_client_cert).returns(nil)
+      product.expects(:ssl_client_key).returns(nil)
       product.expects(:organization).returns(@organization)
       product.expects(:redhat?).returns(false)
       repository.expects(:ostree_upstream_sync_policy=).with(sync_policy)
@@ -608,13 +712,24 @@ module Katello
       end
     end
 
-    def test_update
+    def test_update_with_gpg_key
       key = GpgKey.find(katello_gpg_keys('fedora_gpg_key').id)
       assert_sync_task(::Actions::Katello::Repository::Update) do |repo, attributes|
         repo.must_equal @repository
         attributes.must_equal('gpg_key_id' => "#{key.id}")
       end
       put :update, :id => @repository.id, :repository => {:gpg_key_id => key.id}
+      assert_response :success
+      assert_template 'api/v2/repositories/show'
+    end
+
+    def test_update_with_cert
+      cert = GpgKey.find(katello_gpg_keys('fedora_cert').id)
+      assert_sync_task(::Actions::Katello::Repository::Update) do |repo, attributes|
+        repo.must_equal @repository
+        attributes.to_hash.must_equal('ssl_ca_cert_id' => cert.id.to_s)
+      end
+      put :update, params: { :id => @repository.id, :repository => {:ssl_ca_cert_id => cert.id.to_s} }
       assert_response :success
       assert_template 'api/v2/repositories/show'
     end

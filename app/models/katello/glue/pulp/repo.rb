@@ -242,6 +242,12 @@ module Katello
             :ssl_client_key => self.product.key,
             :ssl_ca_cert => Katello::Repository.feed_ca_cert(url)
           }
+        elsif self.ssl_client_cert && self.ssl_client_key && self.ssl_ca_cert
+          importer_options = {
+            :ssl_client_cert => self.ssl_client_cert.content,
+            :ssl_client_key => self.ssl_client_key.content,
+            :ssl_ca_cert => self.ssl_ca_cert.content
+          }
         else
           importer_options = {
             :ssl_client_cert => nil,
