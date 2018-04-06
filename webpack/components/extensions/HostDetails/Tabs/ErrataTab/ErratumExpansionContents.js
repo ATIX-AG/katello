@@ -5,13 +5,13 @@ import {
 } from '@patternfly/react-core';
 import { translate as __ } from 'foremanReact/common/I18n';
 
-const ErratumExpansionContents = ({ erratum }) => {
+const ErratumExpansionContents = ({ erratum }, debErratum) => {
   const {
-    bugs, cves, packages,
+    bugs, cves, deb_packages: debPackages, packages,
     module_streams: moduleStreams,
   } = erratum;
   const [activeItems, setActiveItems] = useState(null);
-  const options = [
+  const optionsAll = [
     {
       name: __('Bugs'),
       id: 'bugs',
@@ -22,6 +22,16 @@ const ErratumExpansionContents = ({ erratum }) => {
       id: 'cves',
       children: cves.map(cve => ({ name: cve.cve_id, id: cve.cve_id, ...cve })),
     },
+  ];
+  const optionsDeb = [
+    {
+      name: __('Debs'),
+      id: 'deb_packages',
+      // debs is just a list of strings
+      children: debPackages.map(deb => ({ id: `${deb.release}:${deb.name}-${deb.version}`, ...deb })),
+    },
+  ];
+  const optionsRpm = [
     {
       name: __('Packages'),
       id: 'packages',
@@ -36,7 +46,7 @@ const ErratumExpansionContents = ({ erratum }) => {
   ];
   return (
     <TreeView
-      data={options}
+      data={optionsAll.concat(debErratum ? optionsDeb : optionsRpm)}
       activeItems={activeItems}
       onSelect={(evt, treeViewItem) => setActiveItems([treeViewItem])}
       hasBadges
@@ -52,6 +62,7 @@ ErratumExpansionContents.propTypes = {
     solution: PropTypes.string,
     bugs: PropTypes.arrayOf(PropTypes.shape({})),
     cves: PropTypes.arrayOf(PropTypes.shape({})),
+    deb_packages: PropTypes.arrayOf(PropTypes.shape({})),
     packages: PropTypes.arrayOf(PropTypes.string),
     module_streams: PropTypes.arrayOf(PropTypes.shape({})),
   }).isRequired,

@@ -1024,4 +1024,59 @@ module ::Actions::Katello::ContentView
       assert_equal action.content_output(total_count), "with 3 Package(s), and 1 Errata"
     end
   end
+
+  class IncrementalUpdateTest < TestBase
+    let(:action_class) { ::Actions::Katello::ContentViewVersion::IncrementalUpdate }
+
+    context 'resolve_deb_errata()' do
+      # TODO: if manually added packages fix Errata, we should add them.
+      it 'supports content without debian errata' do
+        deb_id = katello_debs(:one).id
+        content = {
+          deb_ids: [deb_id],
+        }
+        source_repo = katello_repositories(:debian_10_amd64)
+        extended_repo_mapping = {
+          [source_repo.id] => [],
+        }
+
+        errata, debs = *action.resolve_deb_errata(content, extended_repo_mapping)
+        assert_empty errata, 'should find no errata that are fixed as well'
+        assert_empty debs, 'without debian-errata, no deb-packages should be returned'
+      end
+
+      it 'resolves debian errata' do
+        content = {
+          errata_ids: ['DEBIAN-2-1'],
+        }
+        source_repo = katello_repositories(:debian_10_amd64)
+        extended_repo_mapping = {
+          [source_repo.id] => [],
+        }
+
+        errata, debs = *action.resolve_deb_errata(content, extended_repo_mapping)
+        assert_equal errata.sort, ['DEBIAN-1-1', 'DEBIAN-2-1'], 'should find errata that are fixed as well'
+        assert_equal debs.sort, [katello_debs(:testpackage_2).id]
+      end
+
+      it 'allows specifying debian-errata and -packages' do
+        deb_ids = [
+          katello_debs(:one).id,
+          katello_debs(:testpackage_2).id,
+        ].sort
+        content = {
+          deb_ids: deb_ids,
+          errata_ids: ['DEBIAN-2-1'],
+        }
+        source_repo = katello_repositories(:debian_10_amd64)
+        extended_repo_mapping = {
+          [source_repo.id] => [],
+        }
+
+        errata, debs = *action.resolve_deb_errata(content, extended_repo_mapping)
+        assert_equal errata.sort, ['DEBIAN-1-1', 'DEBIAN-2-1'], 'should find errata that are fixed as well'
+        assert_equal debs.sort, [katello_debs(:testpackage_2).id], 'only adds errata packages'
+      end
+    end
+  end
 end

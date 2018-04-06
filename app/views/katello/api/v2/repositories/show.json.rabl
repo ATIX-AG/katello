@@ -24,6 +24,7 @@ glue(@resource.root) do
   attributes :product_type
   attributes :upstream_username
   attributes :deb_releases, :deb_components, :deb_architectures
+  attributes :deb_errata_url
   attributes :http_proxy_policy
   attributes :http_proxy_id
   attributes :http_proxy_name

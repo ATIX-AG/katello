@@ -43,6 +43,7 @@ module Katello
         "Katello::DockerMetaTag",
         "Katello::EnvironmentPrior",
         "Katello::ErratumBugzilla",
+        "Katello::ErratumDbtsBug",
         "Katello::Event",
         "Katello::HostInstalledDeb",
         "Katello::HostInstalledPackage",

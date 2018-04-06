@@ -61,6 +61,7 @@ import { useRexJobPolling } from '../RemoteExecutionHooks';
 import { errataStatusContemplation, friendlyErrataStatus } from '../../../../Errata/errataHelpers';
 import { runSubmanRepos } from '../../Cards/ContentViewDetailsCard/HostContentViewActions';
 import ImageModeHostAlert from '../../../Hosts/ImageModeHostAlert';
+import { hideDebsTab } from '../DebsTab/DebsTab';
 
 const recalculateApplicability = ['edit_hosts'];
 const invokeRexJobs = ['create_job_invocations'];
@@ -608,7 +609,10 @@ export const ErrataTab = () => {
                       <>
                         <Td colSpan={3}>
                           <ExpandableRowContent>
-                            <ErratumExpansionContents erratum={erratum} />
+                            <ErratumExpansionContents
+                              erratum={erratum}
+                              debErratum={!hideDebsTab(hostDetails)}
+                            />
                           </ExpandableRowContent>
                         </Td>
                         <Td colSpan={4}>

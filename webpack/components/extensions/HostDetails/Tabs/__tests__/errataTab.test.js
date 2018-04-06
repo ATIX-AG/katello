@@ -71,6 +71,7 @@ const makeMockErrata = ({ pageSize = 20, total = 100, page = 1 }) => {
       bugs: [],
       cves: [],
       packages: [],
+      deb_packages: [],
       module_streams: [],
       installable: true,
     });

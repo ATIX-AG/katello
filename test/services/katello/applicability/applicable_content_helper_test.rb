@@ -34,7 +34,7 @@ module Katello
 
         def setup
           @repo = katello_repositories(:fedora_17_x86_64)
-          @host = FactoryBot.create(:host, :with_content, :with_subscription,
+          @host = FactoryBot.create(:host, :with_content, :with_subscription, :with_operatingsystem,
                                    :content_view => katello_content_views(:library_dev_view),
                                    :lifecycle_environment => katello_environments(:library))
 

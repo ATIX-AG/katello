@@ -35,6 +35,7 @@
               "dhcp-libs-4.2.5-83.el7_9.1.x86_64"
             ],
         "module_streams": [],
+        "deb_packages": [],
         "installable": true
     },
     {
