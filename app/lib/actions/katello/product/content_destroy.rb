@@ -14,12 +14,12 @@ module Actions
             ::Katello::ProductContent.where(product_id: root_repository.product_id,
                                             content_id: katello_content_id).destroy_all
 
-            if root_repository.repositories.count <= 1
+            if root_repository.repositories.count <= 1 && root_repository.content_id
               plan_action(Candlepin::Product::ContentDestroy,
                           owner: root_repository.product.organization.label,
                           content_id: root_repository.content_id)
 
-              ::Katello::Content.find_by_id(katello_content_id)&.destroy!
+              ::Katello::Content.find_by_id(katello_content_id)&.destroy! if katello_content_id
             end
           end
         end
