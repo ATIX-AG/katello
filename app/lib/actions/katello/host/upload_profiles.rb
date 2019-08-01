@@ -74,8 +74,10 @@ module Actions
                 import_deb_package_profile(host, payload)
               when "enabled_repos"
                 host.import_enabled_repositories(payload)
-              else
+              when "modulemd"
                 import_module_streams(payload, host)
+              else
+                Rails.logger.warn("Host uploaded profile with unknown content_type %s" % profile["content_type"])
               end
             end
           end
