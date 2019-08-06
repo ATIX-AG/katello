@@ -30,8 +30,10 @@ module Katello
                             :applicable_errata
                           when ::Katello::ModuleStream::CONTENT_TYPE
                             :applicable_module_streams
-                          else
+                          when ::Katello::Rpm::CONTENT_TYPE
                             :applicable_rpms
+                          else
+                            fail 'Unsupported content_type'
                           end
         response = Katello.pulp_server.extensions.consumer.send(consumer_method, [self.uuid])
         return [] if response.empty?
