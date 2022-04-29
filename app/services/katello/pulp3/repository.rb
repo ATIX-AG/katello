@@ -257,7 +257,7 @@ module Katello
         params
       end
 
-      def create_publication
+      def create_publication(options = {})
         publication_data = api.publication_class.new(publication_options(repo.version_href))
         api.publications_api.create(publication_data)
       end
