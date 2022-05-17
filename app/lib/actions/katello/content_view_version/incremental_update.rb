@@ -73,8 +73,8 @@ module Actions
                   extended_repo_mapping = pulp3_repo_mapping(separated_repo_map[mapping], old_version)
                   unit_map = pulp3_content_mapping(content)
 
-                  unless extended_repo_mapping.empty? || unit_map.values.flatten.empty?
-                    sequence do
+                  sequence do
+                    unless extended_repo_mapping.empty? || unit_map.values.flatten.empty?
                       # Pre-copy content if dest_repo is a soft copy of its library instance.
                       # Don't use extended_repo_mapping because the source repositories are library instances.
                       # We want the old CV snapshot repositories here so as to not pull in excess new content.
@@ -89,20 +89,22 @@ module Actions
                       end
                       copy_action_outputs << plan_action(Pulp3::Repository::MultiCopyUnits, extended_repo_mapping, unit_map,
                                                          dependency_solving: dep_solve).output
-                      separated_repo_map[mapping].each do |source_repos, dest_repo|
-                        # find errata belonging to this repo
-                        errata = ::Katello::Erratum.with_identifiers(content[:errata_ids]).joins(:root_repositories).where(::Katello::RootRepository.table_name => {id: dest_repo.root}).distinct
-                        if errata.present?
-                          # attach deb errata to the dest_repo
-                          plan_action(Actions::Katello::Repository::CopyDebErratum,
-                                      target_repo_id: dest_repo.id,
-                                      erratum_ids: errata.pluck(:errata_id))
-                        end
-                      end
+
                       repos_to_clone.each do |source_repos|
                         if separated_repo_map[mapping].keys.include?(source_repos)
                           copy_repos(repository_mapping[source_repos])
                         end
+                      end
+                    end
+
+                    separated_repo_map[mapping].each do |source_repos, dest_repo|
+                      # find errata belonging to this repo
+                      errata = ::Katello::Erratum.with_identifiers(content[:errata_ids]).joins(:root_repositories).where(::Katello::RootRepository.table_name => {id: dest_repo.root}).distinct
+                      if errata.present?
+                        # attach deb errata to the dest_repo
+                        plan_action(Actions::Katello::Repository::CopyDebErratum,
+                                    target_repo_id: dest_repo.id,
+                                    erratum_ids: errata.pluck(:errata_id))
                       end
                     end
                   end
