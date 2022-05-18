@@ -44,32 +44,32 @@ module Actions
             erratum_list = JSON.parse(output[:data])
             erratum_list.each do |data|
               ActiveRecord::Base.transaction do
-                erratum = ::Katello::Erratum.find_or_initialize_by(errata_id: data['name'])
-                erratum.errata_id = data['name']
-                erratum.pulp_id = data['name']
-                erratum.title = data['title']
-                erratum.summary = data['summary'] || ''
-                erratum.description = data['description']
-                erratum.issued = data['issued']
-                erratum.updated = data['updated'] || data['issued']
-                erratum.severity = data['severity'] || ''
-                erratum.solution = data['solution'] || ''
-                erratum.reboot_suggested = data['reboot_suggested'] || false
-                erratum.errata_type = 'security'
-                erratum.save!
-                data['cves']&.each do |cve|
-                  erratum.cves.find_or_initialize_by(cve_id: cve)
+                erratum = ::Katello::Erratum.find_or_create_by(errata_id: data['name'], pulp_id: data['name'])
+                erratum.with_lock do
+                  erratum.title = data['title']
+                  erratum.summary = data['summary'] || ''
+                  erratum.description = data['description']
+                  erratum.issued = data['issued']
+                  erratum.updated = data['updated'] || data['issued']
+                  erratum.severity = data['severity'] || ''
+                  erratum.solution = data['solution'] || ''
+                  erratum.reboot_suggested = data['reboot_suggested'] || false
+                  erratum.errata_type = 'security'
+                  erratum.save!
+                  data['cves']&.each do |cve|
+                    erratum.cves.find_or_initialize_by(cve_id: cve)
+                  end
+                  data['dbts_bugs']&.each do |dbts_bug|
+                    erratum.dbts_bugs.find_or_initialize_by(bug_id: dbts_bug)
+                  end
+                  data['packages']&.each do |package|
+                    affected_deb = erratum.deb_packages.find_or_initialize_by(name: package['name'], release: package['release'])
+                    affected_deb.version = package['version']
+                    affected_deb.save!
+                  end
+                  erratum.repositories |= [repo]
+                  erratum.save!
                 end
-                data['dbts_bugs']&.each do |dbts_bug|
-                  erratum.dbts_bugs.find_or_initialize_by(bug_id: dbts_bug)
-                end
-                data['packages']&.each do |package|
-                  affected_deb = erratum.deb_packages.find_or_initialize_by(name: package['name'], release: package['release'])
-                  affected_deb.version = package['version']
-                  affected_deb.save!
-                end
-                erratum.repositories |= [repo]
-                erratum.save!
               end
             end
             repo.root.update(deb_errata_url_etag: output[:etag])
