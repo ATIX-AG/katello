@@ -94,11 +94,11 @@
                                                                       uib-popover-html="collectionURLPopover" popover-class="popover-large" popover-trigger="'outsideClick'" popover-append-to-body="true" popover-title="Upstream URL">
         </a>
         </p>
-	<p class="help-block" ng-show="repository.content_type === 'deb'" translate>
+        <p class="help-block" ng-show="repository.content_type === 'deb'" translate>
          URL to the repository base. Example: http://ftp.de.debian.org/debian/ <a class="fa fa-question-circle" ng-show="repository.content_type === 'deb'"
                                                                         uib-popover-html="debURLPopover" popover-class="popover-large" popover-trigger="'outsideClick'" popover-append-to-body="true" popover-title="Upstream URL">
         </a>
-       </p>
+        </p>
 
       </div>
 
@@ -165,7 +165,6 @@
                 <br />
                 <div class="alert alert-danger" ><strong>Warning. </strong>Are you sure you want to add a comma in this whitespace separated list of distributions?</div>
        </div>
-
       </div>
 
       <div ng-show="repository.content_type === 'deb'" bst-form-group label="{{ 'Components' | translate }}">
