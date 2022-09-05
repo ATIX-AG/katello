@@ -237,6 +237,11 @@ angular.module('Bastion.repositories').controller('NewRepositoryController',
                 return pattern.test(value);
             };
 
+            $scope.validateDebURL = function(deb_url) {
+                var value = document.getElementById(deb_url).value;
+                return value.includes("/dists");
+            };
+
             $scope.displayHttpProxyPolicyName = function (policy) {
                 return HttpProxyPolicy.displayHttpProxyPolicyName(policy);
             };

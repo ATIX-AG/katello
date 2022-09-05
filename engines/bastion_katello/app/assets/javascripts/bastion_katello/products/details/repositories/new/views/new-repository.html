@@ -100,6 +100,11 @@
         </a>
         </p>
 
+        <div ng-hide="validateDebURL('url')">
+                <br />
+                <div class="alert alert-danger" ><strong>Warning. </strong>The entered URL contains "dists", which is normally a folder found within the APT repository base. Are you sure you entered the URL to the reposiotry base here?</div>
+        </div>
+
       </div>
 
       <div ng-show="repository.content_type === 'ansible_collection'" bst-form-group label="{{ 'Requirements.yml' | translate }}">
