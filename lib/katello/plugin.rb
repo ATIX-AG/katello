@@ -321,7 +321,7 @@ Foreman::Plugin.register :katello do
     configure_host do
       api_view :list => 'katello/api/v2/content_facet/base_with_root', :single => 'katello/api/v2/content_facet/show'
       api_docs :content_facet_attributes, ::Katello::Api::V2::HostContentsController
-      template_compatibility_properties :content_source_id, :content_source
+      template_compatibility_properties :content_source_id, :content_source, :content_view, :content_view_id, :lifecycle_environment, :lifecycle_environment_id
       extend_model ::Katello::Concerns::ContentFacetHostExtensions
     end
 
