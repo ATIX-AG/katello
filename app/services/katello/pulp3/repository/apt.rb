@@ -72,12 +72,12 @@ module Katello
           "/pulp/deb/#{repo.relative_path}/".sub('//', '/')
         end
 
-        def multi_copy_units(repo_id_map, dependency_solving)
+        def multi_copy_units(repo_id_map, _dependency_solving)
           tasks = []
 
           if repo_id_map.values.pluck(:content_unit_hrefs).flatten.any?
             data = PulpDebClient::Copy.new
-            data.dependency_solving = dependency_solving
+            data.dependency_solving = false
             data.config = []
             repo_id_map.each do |source_repo_ids, dest_repo_id_map|
               dest_repo = ::Katello::Repository.find(dest_repo_id_map[:dest_repo])
@@ -211,9 +211,9 @@ module Katello
           filter_list_map
         end
 
-        def copy_content_from_mapping(repo_id_map, options = {})
+        def copy_content_from_mapping(repo_id_map, _options = {})
           repo_id_map.each do |source_repo_ids, dest_repo_map|
-            filters = ContentViewDebFilter.where(:id => options[:filter_ids])
+            filters = ContentViewDebFilter.where(:id => dest_repo_map[:filter_ids])
 
             filter_list_map = { whitelist_ids: [], blacklist_ids: [] }
             filter_list_map = add_filter_content(source_repo_ids, filters, filter_list_map)
@@ -226,7 +226,7 @@ module Katello
             dest_repo_map[:content_unit_hrefs] = content_unit_hrefs.uniq.sort
           end
 
-          dependency_solving = options[:solve_dependencies] || false
+          dependency_solving = false
 
           multi_copy_units(repo_id_map, dependency_solving)
         end
