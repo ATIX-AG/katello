@@ -189,7 +189,7 @@ module Katello
     end
 
     def content_host_count
-      hosts.count
+      hosts.size
     end
 
     def component_ids
@@ -740,7 +740,7 @@ module Katello
     end
 
     def version_count
-      content_view_versions.count
+      content_view_versions.size
     end
 
     def on_demand_repositories
