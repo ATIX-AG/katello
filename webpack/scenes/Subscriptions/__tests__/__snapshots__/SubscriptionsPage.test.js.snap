@@ -81,12 +81,12 @@ exports[`subscriptions page should render 1`] = `
           type="warning"
         >
           <FormattedMessage
-            defaultMessage="This organization is not using {scaLink}. Entitlement-based subscription management is deprecated and will be removed in Katello 4.12."
+            defaultMessage="This organization is not using {scaLink}. Entitlement-based subscription management is deprecated and will be removed from orcharhino in the future."
             id="sca-alert"
             values={
               Object {
                 "scaLink": <a
-                  href="https://access.redhat.com/articles/simple-content-access"
+                  href="https://orcharhino.com/simple-content-access"
                   rel="noreferrer"
                   target="_blank"
                 >

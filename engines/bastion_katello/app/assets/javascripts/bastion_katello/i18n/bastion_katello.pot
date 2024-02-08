@@ -4403,7 +4403,7 @@ msgid "This organization has Simple Content Access enabled.  Hosts are not requi
 msgstr ""
 
 #: app/assets/javascripts/bastion_katello/subscriptions/views/content-access-mode-banner.html
-msgid "This organization is not using <a target=\"_blank\" href=\"https://access.redhat.com/articles/simple-content-access\">Simple Content Access.</a> Entitlement-based subscription management is deprecated and will be removed in Katello 4.12."
+msgid "This organization is not using <a target=\"_blank\" href=\"https://orcharhino.com/simple-content-access\">Simple Content Access.</a> Entitlement-based subscription management is deprecated and will be removed from orcharhino in the future."
 msgstr ""
 
 #: app/assets/javascripts/bastion_katello/content-hosts/bulk/views/content-hosts-bulk-errata-modal.html

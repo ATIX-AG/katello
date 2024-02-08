@@ -228,7 +228,7 @@ class SubscriptionsPage extends Component {
           values={{
             scaLink: <a href={SCA_URL} target="_blank" rel="noreferrer">{__('Simple Content Access')}</a>,
           }}
-          defaultMessage={__('This organization is not using {scaLink}. Entitlement-based subscription management is deprecated and will be removed in Katello 4.12.')}
+          defaultMessage={__('This organization is not using {scaLink}. Entitlement-based subscription management is deprecated and will be removed from orcharhino in the future.')}
         />
       </Alert>
     );

@@ -19,7 +19,7 @@ module Katello
 
       class_methods do
         def sca_only_deprecation_text
-          N_("WARNING: Simple Content Access will be required for all organizations in Katello 4.12.")
+          N_("WARNING: Simple Content Access will be required for all organizations in orcharhino in the future.")
         end
       end
 
