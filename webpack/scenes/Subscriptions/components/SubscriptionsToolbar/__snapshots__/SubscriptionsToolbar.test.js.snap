@@ -34,7 +34,7 @@ exports[`SubscriptionsToolbar renders SubscriptionsToolbar 1`] = `
               },
               "bookmarks": Object {
                 "canCreate": true,
-                "documentationUrl": "/links/manual/4.1.5Searching",
+                "documentationUrl": "/or_doc/4.1.5Searching",
                 "id": "searchBar-katello_subscriptions",
                 "url": "/api/bookmarks",
               },
@@ -126,7 +126,7 @@ exports[`SubscriptionsToolbar renders SubscriptionsToolbar with disabled add but
               },
               "bookmarks": Object {
                 "canCreate": true,
-                "documentationUrl": "/links/manual/4.1.5Searching",
+                "documentationUrl": "/or_doc/4.1.5Searching",
                 "id": "searchBar-katello_subscriptions",
                 "url": "/api/bookmarks",
               },
@@ -218,7 +218,7 @@ exports[`SubscriptionsToolbar renders SubscriptionsToolbar with disabled delete 
               },
               "bookmarks": Object {
                 "canCreate": true,
-                "documentationUrl": "/links/manual/4.1.5Searching",
+                "documentationUrl": "/or_doc/4.1.5Searching",
                 "id": "searchBar-katello_subscriptions",
                 "url": "/api/bookmarks",
               },
@@ -310,7 +310,7 @@ exports[`SubscriptionsToolbar renders SubscriptionsToolbar with disabled manifes
               },
               "bookmarks": Object {
                 "canCreate": true,
-                "documentationUrl": "/links/manual/4.1.5Searching",
+                "documentationUrl": "/or_doc/4.1.5Searching",
                 "id": "searchBar-katello_subscriptions",
                 "url": "/api/bookmarks",
               },
@@ -402,7 +402,7 @@ exports[`SubscriptionsToolbar renders SubscriptionsToolbar with table columns 1`
               },
               "bookmarks": Object {
                 "canCreate": true,
-                "documentationUrl": "/links/manual/4.1.5Searching",
+                "documentationUrl": "/or_doc/4.1.5Searching",
                 "id": "searchBar-katello_subscriptions",
                 "url": "/api/bookmarks",
               },
