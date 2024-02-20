@@ -5,6 +5,9 @@
       tag1 = hidden_field_tag 'simple_content_access', '0'
       tag2 = check_box_tag 'simple_content_access', '1', true
       tag1 + tag2
-    end %>
-
+  end %>
+  <div class="alert alert-warning" role="alert">
+    <%= link_to _('Simple Content Access'), 'https://orcharhino.com/simple-content-access', :rel => "external" %>
+    <%= _('will be required for all organizations in the future. It is strongly recommended to enable this setting for new organizations.')%>
+  </div>
 <% end %>
