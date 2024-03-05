@@ -22,7 +22,7 @@
     <%= link_to _('Simple Content Access'), 'https://orcharhino.com/simple-content-access', :rel => "external" %>
     <%= _('will be required for all organizations in the future. It is not possible to change the SCA setting for an organization from the UI.')%>
   <% if !@taxonomy.simple_content_access? %>
-    <%= _('If you want to enable SCA for a specific organization, please use the `orcharhino-maintain advanced procedure run migrate-to-sca --organization-name <ORGANIZATION_LABEL>` procedure.') %>
+    <%= _('If you want to enable SCA for a specific organization, please use the `orcharhino-maintain advanced procedure run migrate-to-sca --organization <ORGANIZATION_LABEL>` procedure.') %>
   <% end %>
   </div>
 

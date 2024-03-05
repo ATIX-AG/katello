@@ -2,8 +2,15 @@ module Katello
   module Util
     class DefaultEnablementMigrator # used in lib/katello/tasks/upgrades/4.9/update_custom_products_enablement.rake
       include ActionView::Helpers::TextHelper
+      include ForemanTasks::Triggers
 
-      def execute!
+      def execute!(organization_label=nil)
+        if organization_label
+          @orgs = Organization.where(label: organization_label)
+        else
+          @orgs = Organization.all
+        end
+
         ds_errors = create_disabled_overrides_for_non_sca_org_hosts
         dsak_errors = create_disabled_overrides_for_non_sca_org_activation_keys
         ak_errors = create_activation_key_overrides
@@ -20,6 +27,12 @@ module Katello
         Rails.logger.info("#{pluralize(consumer_errors, "error")} updating consumer overrides; see log messages above") if consumer_errors > 0
         Rails.logger.info("#{pluralize(cp_errors, "error")} updating default enablement in Candlepin; see log messages above") if cp_errors > 0
         Rails.logger.info("#{pluralize(kt_errors, "error")} updating default enablement in Katello; see log messages above") if kt_errors > 0
+        if total_errors == 0
+          @orgs.each do |org|
+            Rails.logger.info("Enable SimpleContentAccess on #{org}")
+            sync_task(::Actions::Katello::Organization::SimpleContentAccess::Enable, org.id)
+          end
+        end
       end
 
       def create_disabled_overrides_for_non_sca(consumable:)
@@ -56,7 +69,7 @@ module Katello
 
       def create_disabled_overrides_for_non_sca_org_hosts
         errors = 0
-        Organization.all.each do |org|
+        @orgs.each do |org|
           next if org.simple_content_access? # subscription attachment is meaningless with SCA
           Rails.logger.info("Creating disabled overrides for unsubscribed content in org #{org.name}")
           hosts_to_update = org.hosts.joins(:subscription_facet).where.not("#{Katello::Host::SubscriptionFacet.table_name}.host_id" => nil)
@@ -75,7 +88,7 @@ module Katello
 
       def create_disabled_overrides_for_non_sca_org_activation_keys
         errors = 0
-        Organization.all.each do |org|
+        @orgs.each do |org|
           next if org.simple_content_access? # subscription attachment is meaningless with SCA
           Rails.logger.info("Creating disabled overrides for unsubscribed content in activation keys in org #{org.name}")
           aks_to_update = org.activation_keys
@@ -114,7 +127,7 @@ module Katello
         Rails.logger.info "Creating content overrides for all activation keys"
         ak_errors = 0
         cp_aks_to_update = ::Katello::Resources::Candlepin::ActivationKey.get.map { |ak| ak['id'] }
-        Organization.all.each do |org|
+        @orgs.each do |org|
           all_repos = ::Katello::RootRepository.custom.in_organization(org).map(&:custom_content_label) # update all custom repos
 
           org_aks_to_update = ::Katello::ActivationKey.where(organization: org, cp_id: cp_aks_to_update)
@@ -132,10 +145,19 @@ module Katello
         ak_errors
       end
 
+      def get_consumer_uuids_by_org
+        # inspired by ::Katello::Resources::Candlepin::Consumer.all_uuids
+        cp_consumers = @orgs.map do |org|
+          ::Katello::Resources::Candlepin::Consumer.get('owner' => org.label, :include_only => [:uuid])
+        end
+        cp_consumers.flatten!
+        cp_consumers.map { |consumer| consumer["uuid"] }
+      end
+
       def create_consumer_overrides
         consumer_errors = 0
-        Rails.logger.info "Creating content overrides for all Candlepin consumers"
-        consumers_to_update = ::Katello::Resources::Candlepin::Consumer.all_uuids
+        Rails.logger.info "Creating content overrides for all Candlepin consumers of Organization(s)"
+        consumers_to_update = get_consumer_uuids_by_org
         # ["Default_Organization_Custom_Custom_Repo", "Default_Organization_TestProd2_TestRepo2"]
         all_repos = ::Katello::RootRepository.custom.map(&:custom_content_label) # update all custom repos
 
@@ -153,7 +175,7 @@ module Katello
       def update_enablement_in_candlepin
         cp_errors = 0
         Rails.logger.info "Updating custom products enablement in Candlepin"
-        ::Katello::ProductContent.custom.each do |product_content|
+        ::Katello::ProductContent.custom.where(product_id: Katello::Product.in_orgs(@orgs)).each do |product_content|
           ::Katello::Resources::Candlepin::Product.add_content(
             product_content.product.organization.label,
             product_content.product.cp_id,
@@ -170,7 +192,7 @@ module Katello
       def update_enablement_in_katello
         kt_errors = 0
         Rails.logger.info "Updating custom products enablement in Katello"
-        ::Katello::ProductContent.custom.each do |product_content|
+        ::Katello::ProductContent.custom.where(product_id: Katello::Product.in_orgs(@orgs)).each do |product_content|
           product_content.set_enabled_from_candlepin!
         rescue => e
           kt_errors += 1
