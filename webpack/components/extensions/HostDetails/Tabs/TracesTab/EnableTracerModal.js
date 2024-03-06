@@ -66,28 +66,28 @@ const EnableTracerModal = ({
           />
           <TextList className="enable-tracer-modal-prereq-list">
             <TextListItem>
-              {__('The Foreman Client repository is enabled. ')}
+              {__('The orcharhino Client repository is enabled (in case of a Red Hat host). ')}
               <a onClick={() => setButtonLoading(true)} href="/redhat_repositories" id="enable-tracer-enable-red-hat-repos-link">
                 {__('Enable Red Hat repositories')}
               </a>
               <ArrowRightIcon />
             </TextListItem>
             <TextListItem>
-              {__('The Foreman Client repository is synced. ')}
+              {__('The orcharhino Client repository is synced. ')}
               <a onClick={() => setButtonLoading(true)} href="/katello/sync_management" id="enable-tracer-sync-status-link">
                 {__('View sync status')}
               </a>
               <ArrowRightIcon />
             </TextListItem>
             <TextListItem>
-              {__('The Foreman Client repository is available in the host\'s content view environment(s). ')}
+              {__('The orcharhino Client repository is available in the host\'s content view environment(s). ')}
               <a onClick={() => setButtonLoading(true)} href="/content_views" id="enable-tracer-cv-link">
                 {__('View content views')}
               </a>
               <ArrowRightIcon />
             </TextListItem>
             <TextListItem id="enable-repo-sets-p">
-              {__('The Foreman Client repository set is enabled for the host. ')}
+              {__('The orcharhino Client repository set is enabled for the host. ')}
               <a onClick={() => setButtonLoading(true)} href="#/Content/Repository%20sets" id="enable-tracer-reposets-link">
                 {__('Enable repository sets')}
               </a>
