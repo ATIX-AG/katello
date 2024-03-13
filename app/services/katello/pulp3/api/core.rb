@@ -47,6 +47,10 @@ module Katello
           fail NotImplementedError
         end
 
+        def get_remotes_api(*)
+          remotes_api
+        end
+
         def publications_api
           repository_type.publications_api_class.new(api_client) #Optional
         end
