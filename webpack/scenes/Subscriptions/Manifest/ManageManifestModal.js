@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
+import { FormattedMessage } from 'react-intl';
 import PropTypes from 'prop-types';
 import { Grid, Col, Row, Tabs, Tab, FormControl, ControlLabel } from 'react-bootstrap';
-import { Button, Spinner } from 'patternfly-react';
+import { Button, Spinner, Alert } from 'patternfly-react';
 import ForemanModal from 'foremanReact/components/ForemanModal';
 import Slot from 'foremanReact/components/common/Slot';
 import { translate as __ } from 'foremanReact/common/I18n';
@@ -208,6 +209,15 @@ class ManageManifestModal extends Component {
                           </ForemanModal>
                         </Col>
                       </Row>
+                    </Grid>
+                    <Grid>
+                      <hr />
+                      <Alert type="warning">
+                        <FormattedMessage
+                          id="manifest-sca-alert"
+                          defaultMessage={__("Please make sure that the manifest you are about to upload has the correct SCA setting. Uploading the manifest will override the organization's current SCA setting.")}
+                        />
+                      </Alert>
                     </Grid>
                   </React.Fragment>
                 }
