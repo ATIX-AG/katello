@@ -7,6 +7,7 @@ module Katello
       def execute!(organization_label=nil)
         if organization_label
           @orgs = Organization.where(label: organization_label)
+          fail "Organization with label #{organization_label.inspect} not found!" if @orgs.blank?
         else
           @orgs = Organization.all
         end
