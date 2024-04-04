@@ -7,11 +7,11 @@ import { translate as __ } from 'foremanReact/common/I18n';
 
 const ErratumExpansionContents = ({ erratum }, debErratum) => {
   const {
-    bugs, cves, debPackages, packages,
+    bugs, cves, deb_packages, packages,
     module_streams: moduleStreams,
   } = erratum;
   const [activeItems, setActiveItems] = useState(null);
-  const optionsAll = [
+  const options_all = [
     {
       name: __('Bugs'),
       id: 'bugs',
@@ -23,15 +23,15 @@ const ErratumExpansionContents = ({ erratum }, debErratum) => {
       children: cves.map(cve => ({ name: cve.cve_id, id: cve.cve_id, ...cve })),
     },
   ];
-  const optionsDeb = [
+  const options_deb = [
     {
       name: __('Debs'),
       id: 'deb_packages',
       // debs is just a list of strings
-      children: debPackages.map(deb => ({ id: `${deb.release}:${deb.name}-${deb.version}`, ...deb })),
+      children: deb_packages.map(deb => ({ id: `${deb.release}:${deb.name}-${deb.version}`, ...deb })),
     },
   ];
-  const optionsRpm = [
+  const options_rpm = [
     {
       name: __('Packages'),
       id: 'packages',
@@ -46,7 +46,7 @@ const ErratumExpansionContents = ({ erratum }, debErratum) => {
   ];
   return (
     <TreeView
-      data={optionsAll.concat(debErratum ? optionsDeb : optionsRpm)}
+      data={options_all.concat(debErratum ? options_deb : options_rpm)}
       activeItems={activeItems}
       onSelect={(evt, treeViewItem) => setActiveItems([treeViewItem])}
       hasBadges
@@ -62,7 +62,7 @@ ErratumExpansionContents.propTypes = {
     solution: PropTypes.string,
     bugs: PropTypes.arrayOf(PropTypes.shape({})),
     cves: PropTypes.arrayOf(PropTypes.shape({})),
-    debPackages: PropTypes.arrayOf(PropTypes.shape({})),
+    deb_packages: PropTypes.arrayOf(PropTypes.shape({})),
     packages: PropTypes.arrayOf(PropTypes.string),
     module_streams: PropTypes.arrayOf(PropTypes.shape({})),
   }).isRequired,
