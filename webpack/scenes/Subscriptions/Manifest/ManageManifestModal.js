@@ -215,7 +215,7 @@ class ManageManifestModal extends Component {
                       <Alert type="warning">
                         <FormattedMessage
                           id="manifest-sca-alert"
-			  values={{ scaLink: <a href="https://orcharhino.com/simple-content-access" target="_blank" rel="noreferrer">{__('Simple Content Access')}</a> }}
+                          values={{ scaLink: <a href="https://orcharhino.com/simple-content-access" target="_blank" rel="noreferrer">{__('Simple Content Access')}</a> }}
                           defaultMessage={__("Uploading a manifest with a mismatched SCA setting in the organization is unsupported. Ensure that the manifest aligns with the organization's current SCA configuration before proceeding. Any discrepancies may lead to the override of the organization's settings, potentially causing operational disruptions and rendering the system unsupported. More information about SCA can be found at: {scaLink}.")}
                         />
                       </Alert>
