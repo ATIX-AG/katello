@@ -27,6 +27,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   # Core Dependencies
+  gem.add_dependency "nokogiri", "<= 1.15.5"
   gem.add_dependency "rails"
   gem.add_dependency "json"
   gem.add_dependency "oauth"
