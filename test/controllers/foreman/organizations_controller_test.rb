@@ -60,7 +60,7 @@ class OrganizationsControllerTest < ActionController::TestCase
     org = get_organization(:organization2)
     Organization.any_instance.stubs(:service_level)
     Organization.any_instance.stubs(:service_levels).returns []
-    Organization.any_instance.expects(:simple_content_access?).returns true
+    Organization.any_instance.expects(:simple_content_access?).twice.returns true
     get :edit, params: { id: org.id }
     assert_response :success
   end
