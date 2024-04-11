@@ -5,6 +5,8 @@ module Katello
     class DefaultEnablementMigratorTest < ActiveSupport::TestCase
       def setup
         @migrator = Katello::Util::DefaultEnablementMigrator.new
+        @orgs = Organization.all
+        @migrator.instance_variable_set(:@orgs, @orgs)
       end
 
       def test_execute!
@@ -15,6 +17,10 @@ module Katello
         @migrator.expects(:update_enablement_in_candlepin).returns(0)
         @migrator.expects(:update_enablement_in_katello).returns(0)
         Rails.logger.expects(:info).with("Finished updating custom products enablement; no errors")
+        @orgs.each do |org|
+          Rails.logger.expects(:info).with("Enable SimpleContentAccess on #{org}")
+          ForemanTasks.expects(:sync_task).with(::Actions::Katello::Organization::SimpleContentAccess::Enable, org.id)
+        end
         @migrator.execute!
       end
 
@@ -32,6 +38,8 @@ module Katello
         Rails.logger.expects(:info).with("4 errors updating consumer overrides; see log messages above")
         Rails.logger.expects(:info).with("5 errors updating default enablement in Candlepin; see log messages above")
         Rails.logger.expects(:info).with("6 errors updating default enablement in Katello; see log messages above")
+       Rails.logger.expects(:info).with("Enable SimpleContentAccess on #{@orgs.first}").never
+       ForemanTasks.expects(:sync_task).never
         @migrator.execute!
       end
 
