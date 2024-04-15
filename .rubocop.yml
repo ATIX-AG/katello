@@ -11,6 +11,9 @@ inherit_from:
 Rails:
   Enabled: true
 
+Rails/ContentTag:
+  Enabled: false
+
 AllCops:
   Exclude:
     - db/migrate/20131014135042_katello_tables.rb
@@ -23,6 +26,7 @@ AllCops:
     - Gemfile
     - locale/action_names.rb
     - lib/monkeys/remove_hidden_distribution.rb
+    - vendor/**/*
   Include:
     - '**/*.rb'
     - app/views/**/*.rabl

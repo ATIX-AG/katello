@@ -38,8 +38,8 @@ module Katello
         Rails.logger.expects(:info).with("4 errors updating consumer overrides; see log messages above")
         Rails.logger.expects(:info).with("5 errors updating default enablement in Candlepin; see log messages above")
         Rails.logger.expects(:info).with("6 errors updating default enablement in Katello; see log messages above")
-       Rails.logger.expects(:info).with("Enable SimpleContentAccess on #{@orgs.first}").never
-       ForemanTasks.expects(:sync_task).never
+        Rails.logger.expects(:info).with("Enable SimpleContentAccess on #{@orgs.first}").never
+        ForemanTasks.expects(:sync_task).never
         @migrator.execute!
       end
 

@@ -584,7 +584,10 @@ export const ErrataTab = () => {
                       <>
                         <Td colSpan={3}>
                           <ExpandableRowContent>
-                            <ErratumExpansionContents erratum={erratum} debErratum={!hideDebsTab(hostDetails)} />
+                            <ErratumExpansionContents
+                              erratum={erratum}
+                              debErratum={!hideDebsTab(hostDetails)}
+                            />
                           </ExpandableRowContent>
                         </Td>
                         <Td colSpan={4}>

@@ -4,7 +4,7 @@ module Katello
       include ActionView::Helpers::TextHelper
       include ForemanTasks::Triggers
 
-      def execute!(organization_label=nil)
+      def execute!(organization_label = nil)
         if organization_label
           @orgs = Organization.where(label: organization_label)
           fail "Organization with label #{organization_label.inspect} not found!" if @orgs.blank?
@@ -146,6 +146,7 @@ module Katello
         ak_errors
       end
 
+      # rubocop:disable Naming/AccessorMethodName
       def get_consumer_uuids_by_org
         # inspired by ::Katello::Resources::Candlepin::Consumer.all_uuids
         cp_consumers = @orgs.map do |org|
@@ -154,6 +155,7 @@ module Katello
         cp_consumers.flatten!
         cp_consumers.map { |consumer| consumer["uuid"] }
       end
+      # rubocop:enable Naming/AccessorMethodName
 
       def create_consumer_overrides
         consumer_errors = 0

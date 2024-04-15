@@ -27,6 +27,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   # Core Dependencies
+  gem.add_dependency "nokogiri", "<= 1.15.5"
   gem.add_dependency "rails"
   gem.add_dependency "json"
   gem.add_dependency "oauth"
@@ -34,7 +35,7 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "rabl"
   gem.add_dependency "foreman-tasks", ">= 5.0"
-  gem.add_dependency "foreman_remote_execution", ">= 7.1.0"
+  gem.add_dependency "foreman_remote_execution", ">= 7.1.0", "<= 12.0.5"
   gem.add_dependency "dynflow", ">= 1.6.1"
   gem.add_dependency "activerecord-import"
   gem.add_dependency "stomp"
@@ -64,16 +65,4 @@ Gem::Specification.new do |gem|
   # UI
   gem.add_dependency "deface", '>= 1.0.2', '< 2.0.0'
   gem.add_dependency "angular-rails-templates", "~> 1.1.0"
-  gem.add_development_dependency "uglifier"
-
-  # Testing
-  gem.add_development_dependency "factory_bot_rails", "~> 4.5"
-  gem.add_development_dependency "minitest-tags"
-  gem.add_development_dependency "mocha"
-  gem.add_development_dependency "vcr", "< 4.0.0"
-  gem.add_development_dependency "webmock"
-  gem.add_development_dependency "rubocop-checkstyle_formatter"
-  gem.add_development_dependency "simplecov"
-  gem.add_development_dependency "simplecov-rcov"
-  gem.add_development_dependency "robottelo_reporter"
 end
