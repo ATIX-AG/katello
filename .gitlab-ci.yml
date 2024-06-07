@@ -2,7 +2,7 @@
 include:
   - project: 'orcharhino/foreman_components/foreman_testing_ci_template'
     file: 'plugin.gitlab-ci.yml'
-    ref: '2.7.0'
+    ref: '2.8.0'
 
 variables:
   DATABASE_IMAGE: "${CI_REGISTRY}/hub/test/postgresql-evr:12.15-bullseye-atix-master"
