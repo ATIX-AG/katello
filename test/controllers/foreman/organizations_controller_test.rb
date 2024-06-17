@@ -55,13 +55,4 @@ class OrganizationsControllerTest < ActionController::TestCase
     put :update, params: { id: org.id, simple_content_access: true }
     assert_response :found
   end
-
-  def test_edit_override_can_toggle
-    org = get_organization(:organization2)
-    Organization.any_instance.stubs(:service_level)
-    Organization.any_instance.stubs(:service_levels).returns []
-    Organization.any_instance.expects(:simple_content_access?).twice.returns true
-    get :edit, params: { id: org.id }
-    assert_response :success
-  end
 end

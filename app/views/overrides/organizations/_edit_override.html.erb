@@ -13,7 +13,8 @@
   end %>
 
   <%= field(f, _('Simple Content Access')) do
-    tag1 = hidden_field_tag 'simple_content_access', '0'
+    tag1 = hidden_field_tag 'simple_content_access', @taxonomy.simple_content_access?(cached: false)
+
     tag2 = check_box_tag 'simple_content_access', '1', @taxonomy.simple_content_access?(cached: false), :disabled => true
     tag1 + tag2
   end %>
