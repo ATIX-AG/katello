@@ -687,6 +687,12 @@ Foreman::Plugin.register :katello do
         default: false,
         full_name: N_('Sync structured content for proxy syncs'),
         description: N_('If enabled, any upstream distributions synced to the server will also be used for proxy syncs.')
+
+      setting 'automatic_content_count_updates',
+        type: :boolean,
+        default: true,
+        full_name: N_('Calculate content counts on smart proxies automatically'),
+        description: N_("If this is enabled, content counts on smart proxies will be updated automatically after content sync.")
     end
   end
 
