@@ -423,11 +423,7 @@ module Katello
     end
 
     def supports_errata?
-      if deb?
-        self.deb_errata_url.present?
-      else
-        self.repository_type.supports_content_type Katello::Erratum
-      end
+      self.repository_type.supports_content_type Katello::Erratum
     end
 
     def repo_mapper
