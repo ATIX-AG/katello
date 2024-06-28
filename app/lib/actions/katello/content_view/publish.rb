@@ -237,6 +237,17 @@ module Actions
         def handle_importing_content(version, path = nil, metadata = nil)
           sequence do
             plan_action(::Actions::Pulp3::Orchestration::ContentViewVersion::Import, version, { path: path, metadata: metadata })
+            # import DEB Errata
+            if metadata&.fetch(:repositories)
+              metadata[:repositories].each do |_name, import_repo|
+                next unless import_repo && import_repo[:deb_errata]
+
+                repo = version.importable_repositories.find_by(::Katello::RootRepository.table_name => { label: import_repo[:label] })
+                next unless repo
+
+                plan_action(::Actions::Katello::ContentViewVersion::ImportDebErrata, repo, import_repo[:deb_errata])
+              end
+            end
             concurrence do
               version.importable_repositories.pluck(:id).each do |id|
                 # need to force full_indexing for these version repositories

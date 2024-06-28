@@ -14,8 +14,8 @@ module Katello
             version = katello_content_view_versions(:library_view_version_2)
             destination_server = "whereami.com"
             export = fetch_exporter(smart_proxy: proxy,
-                                         content_view_version: version,
-                                         destination_server: destination_server)
+                                    content_view_version: version,
+                                    destination_server: destination_server)
 
             data = export.generate_metadata
             assert_equal data[:content_view_version][:major], version.major
@@ -26,12 +26,17 @@ module Katello
                                                     :description,
                                                     :generated_for)
 
-            version_repositories = version.archived_repos.yum_type
+            version_repositories = version.archived_repos
+
+            assert_not data[:repositories].empty?, "Export should include repositories!"
             data[:repositories].each do |name, repo_info|
-              repo = version_repositories[name.to_i]
-              assert_equal repo_info[:repository][:name], repo.root.name
-              assert_equal repo_info[:product].slice(:name, :label), repo.root.product.slice(:name, :label)
+              repo = version_repositories.find_by(version_href: name)
+              assert_equal repo_info[:name], repo.root.name
+              assert_equal repo_info[:product], repo.root.product.slice(:label)
               assert_equal repo_info[:redhat], repo.redhat?
+              if repo_info[:content_type] == 'deb'
+                assert_equal repo_info[:deb_errata], Katello::Erratum.export_deb_errata(repo.errata)
+              end
             end
           end
 
@@ -92,8 +97,9 @@ module Katello
                                      destination_server: destination_server,
                                      from_content_view_version: from_version)
             ::Katello::Pulp3::ContentViewVersion::ExportValidator.any_instance.expects(:validate_repositories_immediate!)
-            ::Katello::Pulp3::ContentViewVersion::ExportValidator.any_instance.expects(:version_href_to_repository_href).with("0").returns("0")
-            ::Katello::Pulp3::ContentViewVersion::ExportValidator.any_instance.expects(:version_href_to_repository_href).with("1").returns("1")
+            0.upto 3 do |i|
+              ::Katello::Pulp3::ContentViewVersion::ExportValidator.any_instance.expects(:version_href_to_repository_href).with(i.to_s).returns(i.to_s)
+            end
             ::Katello::Pulp3::ContentViewVersion::ExportValidator.any_instance.expects(:version_href_to_repository_href).with(nil).returns(nil).at_least_once
 
             exception = assert_raises(::Katello::Pulp3::ContentViewVersion::ExportValidationError) do

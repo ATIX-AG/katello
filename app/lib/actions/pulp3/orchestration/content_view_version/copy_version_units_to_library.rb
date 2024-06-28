@@ -13,6 +13,11 @@ module Actions
                                                     mirror: content_view_version.content_view.generated?)
                   plan_action(Actions::Pulp3::Repository::SaveVersion, repo.library_instance)
                   plan_action(Katello::Repository::IndexContent, id: repo.library_instance_id)
+                  if repo.deb?
+                    plan_action(Actions::Katello::Repository::CopyDebErratum,
+                                source_repo_id: repo.id,
+                                target_repo_id: repo.library_instance.id)
+                  end
                   plan_action(Katello::Repository::MetadataGenerate, repo.library_instance, force_publication: true)
                 end
               end

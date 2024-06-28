@@ -38,15 +38,47 @@ module ::Actions::Katello::ContentViewVersion
       katello_products(:redhat)
     end
 
+    let(:prod_debian) do
+      katello_products(:debian)
+    end
+
+    let(:deb_errata) do
+      [{
+        'name' => 'DEBIAN-1-1',
+        'issued' => '2023-09-11',
+        'updated' => '2023-09-11',
+        'errata_type' => 'security',
+        'severity' => '',
+        'title' => 'testpackage -- security update',
+        'description' => 'Oopsie',
+        'summary' => '',
+        'solution' => '',
+        'reboot_suggested' => 'false',
+        'cves' => [],
+        'dbts_bugs' => [],
+        'packages' => [{
+          'name' => 'testpackage',
+          'release' => 'buster',
+          'version' => '1.1',
+        }],
+      }]
+    end
+
     let(:import_metadata) do
       {
         products: {
           prod.label => prod.slice(:label, :name).merge(redhat: prod.redhat?),
+          prod_debian.label => prod_debian.slice(:label, :name).merge(redhat: prod_debian.redhat?),
         },
         repositories: {
           "misc-24037" => { label: prod.repositories.first.label,
                             product: prod.slice(:label),
                             redhat: prod.redhat?,
+          },
+          "deb-24037" => { label: prod_debian.repositories.first.label,
+                           product: prod_debian.slice(:label),
+                           redhat: prod_debian.redhat?,
+                           deb_errata: deb_errata,
           },
         },
         gpg_keys: {},
@@ -188,6 +220,10 @@ module ::Actions::Katello::ContentViewVersion
           assert_equal path, input[:path]
           assert_equal content_view_version.content_view.organization_id, input[:organization_id]
           refute_nil input[:importer_data]
+        end
+
+        assert_tree_planned_with(tree, ::Actions::Katello::ContentViewVersion::ImportDebErrata) do |input|
+          assert_equal input[:deb_errata], deb_errata
         end
 
         assert_tree_planned_with(tree, ::Actions::Pulp3::ContentViewVersion::CreateImportHistory) do |input|

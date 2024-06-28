@@ -219,6 +219,39 @@ module Katello
       package_names + deb_packages.map { |pkg| pkg.name }
     end
 
+    # export a collection of Katello::Erratum to an array of deb-errata
+    def self.export_deb_errata(collection)
+      collection.map(&:export)
+    end
+
+    # returns a Hash containing the necessary attributes to re-import the debian erratum
+    def export
+      base = attributes.slice(
+        'errata_id',
+        'title',
+        'summary',
+        'description',
+        'issued',
+        'updated',
+        'severity',
+        'solution',
+        'reboot_suggested',
+        'errata_type'
+      ).transform_values(&:to_s)
+      base['name'] = base['errata_id']
+      base.delete('errata_id')
+      base['cves'] = cves.map(&:cve_id)
+      base['dbts_bugs'] = dbts_bugs.map(&:bug_id)
+      base['packages'] = deb_packages.map do |pkg|
+        pkg.slice(
+              'name',
+              'release',
+              'version'
+            ).transform_keys(&:to_s).transform_values(&:to_s)
+      end
+      base
+    end
+
     apipie :class, desc: "A class representing #{model_name.human} object" do
       name 'Erratum'
       refs 'Erratum'

@@ -35,3 +35,11 @@ debian_10_amd64_security_1:
 debian_10_amd64_security_2:
     erratum_id: <%= ActiveRecord::FixtureSet.identify(:deb_2) %>
     repository_id: <%= ActiveRecord::FixtureSet.identify(:debian_10_amd64) %>
+
+debian_devlib_security_one:
+  erratum_id: <%= ActiveRecord::FixtureSet.identify(:deb_1) %>
+  repository_id: <%= ActiveRecord::FixtureSet.identify(:debian_10_dev_library_view) %>
+
+debian_archive_security_one:
+  erratum_id: <%= ActiveRecord::FixtureSet.identify(:deb_1) %>
+  repository_id: <%= ActiveRecord::FixtureSet.identify(:debian_10_archive) %>

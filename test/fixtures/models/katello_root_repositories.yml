@@ -38,6 +38,7 @@ debian_10_amd64_root:
 
 debian_10_amd64_duplicate_root:
   name:                 Debian 10 amd64 duplicate
+  content_id:           42
   content_type:         deb
   description:          'My description'
   label:                debian_10_amd64_duplicate_label

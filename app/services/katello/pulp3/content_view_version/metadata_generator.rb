@@ -30,6 +30,8 @@ module Katello
             next if repo.version_href.blank?
             pulp3_repo = export_service.fetch_repository_info(repo.version_href).name
             ret[:repositories][pulp3_repo] = generate_repository_metadata(repo)
+            # Add Deb-Errata, if applicable
+            ret[:repositories][pulp3_repo][:deb_errata] = export_deb_errata(repo) if repo.deb? && repo.errata.any?
           end
 
           zip_products(ret[:repositories].values)
@@ -40,6 +42,10 @@ module Katello
           ret[:products] = products
           ret[:gpg_keys] = gpg_keys
           ret
+        end
+
+        def export_deb_errata(repo)
+          Katello::Erratum.export_deb_errata(repo.errata)
         end
 
         def generate_repository_metadata(repo)

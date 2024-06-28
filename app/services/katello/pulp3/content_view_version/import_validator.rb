@@ -27,6 +27,14 @@ module Katello
           ensure_manifest_imported!
           ensure_metadata_matches_repos_in_library!
           ensure_redhat_products_metadata_are_in_the_library!
+          ensure_deb_errata!
+        end
+
+        def ensure_deb_errata!
+          repos_w_deb_errata = @metadata_map.repositories.select { |_k, v| v&.has? 'deb_errata' }
+          if repos_w_deb_errata.any? { |_k, v| v.content_type != "deb" }
+            fail _("Only repositories of type 'deb' can have deb_errata")
+          end
         end
 
         def ensure_non_syncable_path_valid!

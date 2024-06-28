@@ -14,6 +14,8 @@ module Katello
 
         class MetadataRepositoryContent < OpenStruct; end
 
+        class MetadataRepositoryDebErratum < OpenStruct; end
+
         attr_reader :toc,
                     :products,
                     :repositories,
@@ -87,6 +89,9 @@ module Katello
                                                        label: repo[:content][:label],
                                                        url: repo[:content][:url])
             end
+            if repo[:deb_errata]
+              deb_errata = parse_deb_errata(repo[:deb_errata])
+            end
             MetadataRepository.new(
               pulp_name: pulp_name,
               name: repo[:name],
@@ -107,10 +112,32 @@ module Katello
               deb_architectures: repo[:deb_architectures],
               product: product_for_repo(repo),
               gpg_key: gpg_key_for_repo(repo),
+              deb_errata: deb_errata,
               content: content
             )
           rescue => e
             raise _("Invalid repository in the metadata %{repo} error=%{error}") % { repo: repo, error: e.message }
+          end
+        end
+
+        def parse_deb_errata(errata)
+          errata.map do |erratum|
+            packages = erratum[:packages].map { |v| v.slice(:name, :release, :version) }
+            MetadataRepositoryDebErratum.new(
+              name: erratum[:name],
+              title: erratum[:title],
+              summary: erratum[:summary],
+              description: erratum[:description],
+              issued: erratum[:issued],
+              updated: erratum[:updated],
+              severity: erratum[:severity],
+              solution: erratum[:solution],
+              reboot_suggested: erratum[:reboot_suggested],
+              errata_type: erratum[:errata_type],
+              cves: erratum[:cves],
+              dbts_bugs: erratum[:dbts_bugs],
+              packages: packages
+            )
           end
         end
 

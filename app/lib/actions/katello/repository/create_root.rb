@@ -2,7 +2,7 @@ module Actions
   module Katello
     module Repository
       class CreateRoot < Actions::EntryAction
-        def plan(root)
+        def plan(root, deb_errata = nil)
           root.save!
           repository = ::Katello::Repository.new(:environment => root.organization.library,
                                                  :content_view_version => root.organization.library.default_content_view_version,
@@ -11,6 +11,9 @@ module Actions
           repository.save!
           action_subject(repository)
           plan_action(::Actions::Katello::Repository::Create, repository)
+          if deb_errata
+            plan_action(::Actions::Katello::ContentViewVersion::ImportDebErrata, repository, deb_errata)
+          end
         end
 
         def humanized_name

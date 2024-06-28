@@ -237,4 +237,35 @@ module Katello
       assert_includes errata, @security
     end
   end
+
+  class ErratumDebTest < ActiveSupport::TestCase
+    def setup
+      @repo = katello_repositories(:debian_10_dev_library_view)
+      @erratum = katello_errata(:deb_1)
+    end
+
+    def test_export
+      export = Katello::Erratum.export_deb_errata(@repo.errata)
+      assert_equal export.length, 1
+      assert_equal export.first, {
+        'name' => 'DEBIAN-1-1',
+        'issued' => '2023-09-11',
+        'updated' => '2023-09-11',
+        'errata_type' => 'security',
+        'severity' => '',
+        'title' => 'testpackage -- security update',
+        'description' => 'Oopsie',
+        'summary' => '',
+        'solution' => '',
+        'reboot_suggested' => 'false',
+        'cves' => [],
+        'dbts_bugs' => [],
+        'packages' => [{
+          'name' => 'testpackage',
+          'release' => 'buster',
+          'version' => '1.1',
+        }],
+      }
+    end
+  end
 end

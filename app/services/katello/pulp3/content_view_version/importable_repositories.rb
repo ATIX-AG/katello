@@ -56,7 +56,7 @@ module Katello
                 override_arch: repo.arch,
               }
             else
-              creatable << { repository: product.add_repo(create_repo_params(repo, product)) }
+              creatable << { repository: product.add_repo(create_repo_params(repo, product)), deb_errata: repo&.deb_errata }
             end
           end
         end

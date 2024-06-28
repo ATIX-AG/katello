@@ -11,7 +11,7 @@ module Support
           format: format,
         }
       )
-      version_repositories = content_view_version.archived_repos.yum_type
+      version_repositories = content_view_version.archived_repos
       version_repositories.each_with_index do |repo, index|
         repo.update!(version_href: index)
       end

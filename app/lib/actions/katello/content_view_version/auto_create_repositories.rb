@@ -13,7 +13,7 @@ module Actions
 
           sequence do
             helper.creatable.each do |root|
-              plan_action(::Actions::Katello::Repository::CreateRoot, root[:repository])
+              plan_action(::Actions::Katello::Repository::CreateRoot, root[:repository], root[:deb_errata])
             end
             helper.updatable.each do |root|
               plan_action(::Actions::Katello::Repository::Update, root[:repository], root[:options])
