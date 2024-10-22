@@ -24,7 +24,7 @@ export const buildColumns = () => [
 const buildRow = (contentView) => {
   /* eslint-disable max-len */
   const {
-    id, composite, name, last_published: lastPublished, latest_version: latestVersion, latest_version_id: latestVersionId,
+    id, composite, rolling, name, last_published: lastPublished, latest_version: latestVersion, latest_version_id: latestVersionId,
     latest_version_environments: latestVersionEnvironments, last_task: lastTask,
   } = contentView;
   /* eslint-enable max-len */
@@ -53,6 +53,7 @@ const buildExpandableRows = (contentViews) => {
       id,
       name,
       composite,
+      rolling,
       next_version: nextVersion,
       version_count: versionCount,
       description,
@@ -74,6 +75,7 @@ const buildExpandableRows = (contentViews) => {
       cvName: name,
       cvVersionCount: versionCount,
       cvComposite: composite,
+      cvRolling: rolling,
       cvNextVersion: nextVersion,
       latestVersionEnvironments,
       latestVersionId,
@@ -94,6 +96,7 @@ const buildExpandableRows = (contentViews) => {
             cvId={id}
             cvName={name}
             cvComposite={composite}
+	    cvRolling={rolling}
             {...{
               activationKeys, hosts, relatedCVCount, relatedCompositeCVs,
             }}

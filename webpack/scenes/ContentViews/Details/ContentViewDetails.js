@@ -106,6 +106,7 @@ export default () => {
     name, composite, permissions, environments, versions,
     generated_for: generatedFor, import_only: importOnly,
   } = details;
+  console.log("**************** details", details);
   const generatedContentView = generatedFor !== 'none';
   const detailsTab = {
     key: 'details',

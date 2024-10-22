@@ -68,6 +68,7 @@ module Katello
     validate :check_non_composite_auto_publish
     validate :check_default_label_name, if: :default?
     validates :composite, :inclusion => [true, false]
+    validates :rolling, :inclusion => [true, false]
     validates :composite,
               inclusion: { in: [false], message: "Composite Content Views can not solve dependencies" },
               if: :solve_dependencies
@@ -92,6 +93,8 @@ module Katello
     scope :default, -> { where(:default => true) }
     scope :non_default, -> { where(:default => false) }
     scope :composite, -> { where(:composite => true) }
+    scope :rolling, -> { where(:rolling => true) }
+    scope :non_rolling, -> { where(:composite => [nil, false]) }
     scope :non_composite, -> { where(:composite => [nil, false]) }
     scope :generated, -> { where.not(:generated_for => :none) }
     scope :generated_for_repository, -> {
@@ -113,6 +116,7 @@ module Katello
     scoped_search :on => :organization_id, :complete_value => true, :only_explicit => true, :validator => ScopedSearch::Validators::INTEGER
     scoped_search :on => :label, :complete_value => true
     scoped_search :on => :composite, :complete_value => true
+    scoped_search :on => :rolling, :complete_value => true
     scoped_search :on => :generated_for, :complete_value => true
     scoped_search :on => :default # just for ordering
     scoped_search :on => :name, :complete_value => true,

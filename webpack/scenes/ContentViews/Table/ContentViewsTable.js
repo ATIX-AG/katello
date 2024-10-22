@@ -238,6 +238,7 @@ const ContentViewTable = () => {
         results?.map((cvInfo, rowIndex) => {
           const {
             composite,
+            rolling,
             name,
             id: cvId,
             last_published: lastPublished,
@@ -293,6 +294,7 @@ const ContentViewTable = () => {
                       cvId={cvId}
                       cvName={name}
                       cvComposite={composite}
+		      cvRolling={rolling}
                       {...{
                         activationKeys, hosts, relatedCVCount, relatedCompositeCVs,
                       }}
