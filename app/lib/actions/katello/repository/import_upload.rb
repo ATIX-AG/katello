@@ -13,7 +13,7 @@ module Actions
           unit_keys = repo_service.unit_keys(uploads)
           generate_metadata = options.fetch(:generate_metadata, true)
           sync_capsule = options.fetch(:sync_capsule, true)
-          generate_applicability = options.fetch(:generate_applicability, repository.yum?)
+          generate_applicability = options.fetch(:generate_applicability, repository.yum? || repository.deb?)
 
           options[:content_type] ||= ::Katello::RepositoryTypeManager.find(repository.content_type).default_managed_content_type.label
           if ::Katello::RepositoryTypeManager.generic_content_type?(options[:content_type])

@@ -23,7 +23,7 @@ module Actions
 
           upload_actions = []
 
-          generate_applicability = options.fetch(:generate_applicability, repository.yum?)
+          generate_applicability = options.fetch(:generate_applicability, repository.yum? || repository.deb?)
 
           sequence do
             tmp_files.each do |file|

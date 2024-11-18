@@ -468,6 +468,29 @@ module ::Actions::Katello::Repository
     end
   end
 
+  class UploadDebTest < TestBase
+    let(:action_class) { ::Actions::Katello::Repository::UploadFiles }
+    let(:cli_action_class) { ::Actions::Katello::Repository::ImportUpload }
+    let(:file) { File.join(::Katello::Engine.root, "test", "fixtures", "files", "frigg_1.0_ppc64.deb") }
+
+    it 'plans for applicability regen on upload' do
+      action.expects(:action_subject).with(deb_repository)
+      plan_action action, deb_repository, [{:path => file, :filename => File.basename(file)}]
+      assert_action_planned_with action,
+                                ::Actions::Katello::Applicability::Repository::Regenerate,
+                                :repo_ids => [deb_repository.id]
+    end
+
+    it 'plans for applicability regen on upload through cli' do
+      action = create_action cli_action_class
+      action.expects(:action_subject).with(deb_repository)
+      plan_action action, deb_repository, [{:path => file, :filename => File.basename(file)}]
+      assert_action_planned_with action,
+                                ::Actions::Katello::Applicability::Repository::Regenerate,
+                                :repo_ids => [deb_repository.id]
+    end
+  end
+
   class UploadContentTest < TestBase
     let(:action_class) { ::Actions::Katello::Repository::UploadFiles }
     let(:cli_action_class) { ::Actions::Katello::Repository::ImportUpload }
