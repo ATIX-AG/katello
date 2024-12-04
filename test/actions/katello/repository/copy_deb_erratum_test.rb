@@ -43,6 +43,34 @@ module Actions::Katello::Repository
       act
     end
 
+    context 'with ForemanTask' do
+      it 'test_copy_all_errata_from_source_keeping_existing' do
+        assert_empty dst_repo.erratum_ids
+        ForemanTasks.sync_task(::Actions::Katello::Repository::CopyDebErratum, source_repo_id: src_repo.id, target_repo_id: dst_repo.id)
+        assert_equal_arrays src_repo.erratum_ids, ::Katello::RepositoryErratum.where(repository_id: dst_repo.id).pluck(:erratum_id)
+      end
+
+      it 'test_copy_all_errata_from_source_replacing_existing' do
+        assert_empty dst_repo.erratum_ids
+        ForemanTasks.sync_task(::Actions::Katello::Repository::CopyDebErratum, source_repo_id: src_repo.id, target_repo_id: dst_repo.id, clean_target_errata: true)
+        assert_equal_arrays src_repo.erratum_ids, ::Katello::RepositoryErratum.where(repository_id: dst_repo.id).pluck(:erratum_id)
+      end
+
+      it 'test_copy_one_erratum_keeping_existing' do
+        ::Katello::RepositoryErratum.new(repository_id: dst_repo.id, erratum_id: deb2.id).save
+        task = ForemanTasks.sync_task(::Actions::Katello::Repository::CopyDebErratum, erratum_ids: [deb1.errata_id], target_repo_id: dst_repo.id)
+        assert_equal_arrays [deb1.id, deb2.id], ::Katello::RepositoryErratum.where(repository_id: dst_repo.id).pluck(:erratum_id)
+        assert task.output.key? :pulp_tasks
+      end
+
+      it 'test_copy_one_erratum_replacing_existing' do
+        ::Katello::RepositoryErratum.new(repository_id: dst_repo.id, erratum_id: deb2.id).save
+        task = ForemanTasks.sync_task(::Actions::Katello::Repository::CopyDebErratum, erratum_ids: [deb1.errata_id], target_repo_id: dst_repo.id, clean_target_errata: true)
+        assert_equal_arrays [deb1.id], ::Katello::RepositoryErratum.where(repository_id: dst_repo.id).pluck(:erratum_id)
+        assert task.output.key? :pulp_tasks
+      end
+    end
+
     context 'policy include/exclude' do
       setup do
         # make sure source repo actualy has these errata
