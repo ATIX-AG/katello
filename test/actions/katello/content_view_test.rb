@@ -298,6 +298,7 @@ module ::Actions::Katello::ContentView
     let(:action_class) { ::Actions::Katello::ContentView::RefreshRollingRepo }
     let(:content_view) { katello_content_views(:rolling_view) }
     let(:repository_deb) { katello_repositories(:debian_10_amd64) }
+    let(:repository_rpm) { katello_repositories(:fedora_17_x86_64) }
     let(:library) { katello_environments(:library) }
     let(:clone_deb) do
       FactoryBot.create :katello_repository,
@@ -306,8 +307,19 @@ module ::Actions::Katello::ContentView
                         content_view_version: content_view.versions.first,
                         environment: library
     end
+    let(:clone_rpm) do
+      FactoryBot.create :katello_repository,
+                        root: repository_rpm.root,
+                        library_instance: repository_rpm,
+                        content_view_version: content_view.versions.first,
+                        environment: library
+    end
 
     before do
+      repository_rpm.version_href = 'foo'
+      repository_rpm.publication_href = 'bar'
+      repository_rpm.save!
+      clone_rpm.save!
       repository_deb.version_href = 'foo'
       repository_deb.publication_href = 'bar'
       repository_deb.save!
@@ -316,12 +328,25 @@ module ::Actions::Katello::ContentView
 
     it 'plans' do
       action.stubs(:task).returns(success_task)
+      refute_equal repository_rpm.version_href, clone_rpm.version_href
+
+      plan_action(action, clone_rpm, true)
+
+      assert_action_planned_with action, ::Actions::Pulp3::Repository::RefreshDistribution, clone_rpm, SmartProxy.pulp_primary
+      assert_action_planned_with action, ::Actions::Katello::Repository::IndexContent, id: clone_rpm.id, source_repository_id: repository_rpm.id
+      refute_action_planned action, ::Actions::Katello::Repository::CopyDebErratum
+      assert_action_planned_with action, ::Actions::Katello::Applicability::Repository::Regenerate, repo_ids: [clone_rpm.id]
+    end
+
+    it 'plans deb with CopyDebErratum' do
+      action.stubs(:task).returns(success_task)
       refute_equal repository_deb.version_href, clone_deb.version_href
 
       plan_action(action, clone_deb, true)
 
       assert_action_planned_with action, ::Actions::Pulp3::Repository::RefreshDistribution, clone_deb, SmartProxy.pulp_primary
       assert_action_planned_with action, ::Actions::Katello::Repository::IndexContent, id: clone_deb.id, source_repository_id: repository_deb.id
+      assert_action_planned_with action, ::Actions::Katello::Repository::CopyDebErratum, target_repo_id: clone_deb.id, source_repo_id: repository_deb.id, clean_target_errata: true
       assert_action_planned_with action, ::Actions::Katello::Applicability::Repository::Regenerate, repo_ids: [clone_deb.id]
     end
 
@@ -349,7 +374,7 @@ module ::Actions::Katello::ContentView
     it 'updates pulp_hrefs' do
       last_changed = DateTime.new(2024, 12, 2.5)
       DateTime.stubs(:now).returns(last_changed)
-      action_class.any_instance.expects(:plan_action).at_least(3)
+      action_class.any_instance.expects(:plan_action).at_least(2)
 
       Setting[:foreman_proxy_content_auto_sync] = true
       action_class.any_instance.expects(:schedule_async_repository_proxy_sync).with(clone_deb)

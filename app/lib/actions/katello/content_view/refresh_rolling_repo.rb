@@ -10,6 +10,7 @@ module Actions
             plan_self(repository_id: repository.id, contents_changed: contents_changed)
             plan_action(Pulp3::Repository::RefreshDistribution, repository, SmartProxy.pulp_primary)
             plan_action(Repository::IndexContent, id: repository.id, source_repository_id: repository.library_instance.id)
+            plan_action(Repository::CopyDebErratum, target_repo_id: repository.id, source_repo_id: repository.library_instance.id, clean_target_errata: true) if repository.deb?
             plan_action(Actions::Katello::Applicability::Repository::Regenerate, :repo_ids => [repository.id])
           end
         end
