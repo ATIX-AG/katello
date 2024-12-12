@@ -38,6 +38,7 @@ module Katello
       :katello_host_collection_hosts => Katello::HostCollectionHosts,
       :katello_task_statuses => Katello::TaskStatus,
       :katello_errata => Katello::Erratum,
+      :katello_erratum_deb_packages => Katello::ErratumDebPackage,
       :katello_erratum_packages => Katello::ErratumPackage,
       :katello_erratum_cves => Katello::ErratumCve,
       :katello_repository_errata => Katello::RepositoryErratum,

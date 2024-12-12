@@ -1,0 +1,20 @@
+[{
+  "name": "DLA-3383-1",
+  "title": "grunt -- security update",
+  "issued": "05 Apr 2023",
+  "affected_source_package": "grunt",
+  "packages": [
+    {
+      "name": "grunt",
+      "version": "1.0.1-8+deb10u3",
+      "architecture": "all",
+      "component": "main",
+      "release": "buster"
+    }
+  ],
+  "description": "file.copy operations in GruntJS are vulnerable to a TOCTOU race condition leading to\narbitrary file write in GitHub repository gruntjs/grunt prior to 1.5.3. This vulnerability\nis capable of arbitrary file writes which can lead to local privilege escalation to the\nGruntJS user if a lower-privileged user has write access to both source and destination\ndirectories as the lower-privileged user can create a symlink to the GruntJS user's\n.bashrc file or replace /etc/shadow file if the GruntJS user is root.\n",
+  "cves": [
+    "CVE-2022-1537"
+  ],
+  "scope": "local"
+}]
