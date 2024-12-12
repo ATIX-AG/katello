@@ -37,20 +37,28 @@ module Katello
       # Check if the synced repository satisfies this erratum's package-requests
       solution_pkgs_in_repo = []
       data['packages']&.each do |package|
-        solution_deb = erratum.deb_packages.find_or_initialize_by(
-          name: package['name'],
-          release: package['release'],
-          version: package['version']
-        )
-        solution_deb.save!
+        solution_deb = erratum.deb_packages.find_by(name: package['name'], release: package['release'])
+        # create the package with listed version if it is not yet attached to the erratum for the given release
+        # (with a potentially older version that also solves the erratum)
+        if solution_deb.nil?
+          solution_deb = Katello::ErratumDebPackage.new(
+            erratum: erratum,
+            name: package['name'],
+            release: package['release'],
+            version: package['version']
+          )
+          solution_deb.save!
+        end
         solution_pkgs_in_repo << solution_deb
       end
       # get all debs from the repo that have the same name
-      debs_erratum_in_repo = repo.debs.where(name: solution_pkgs_in_repo.map { |pkg| pkg.name }).distinct
+      debs_erratum_in_repo = repo.debs.where(name: solution_pkgs_in_repo.map(&:name)).distinct
       # for these package(-names) check that all have a version bigger or equal than in the Erratum
       debs_solving_erratum = repo.debs.solving_erratum_debs(solution_pkgs_in_repo)
       # make sure all package-names available in repo are also in a version that resolves the Erratum
-      if debs_solving_erratum.pluck(:name).to_set == debs_erratum_in_repo.pluck(:name).to_set
+      if debs_solving_erratum.empty?
+        Rails.logger.warn("Repo #{repo} does not include packages to solve erratum #{erratum.errata_id}, check you are synching the latest upstream-version of the repository!")
+      elsif debs_solving_erratum.pluck(:name).to_set == debs_erratum_in_repo.pluck(:name).to_set
         erratum.repositories << repo unless erratum.repositories.include?(repo)
       else
         Rails.logger.warn("Erratum #{erratum.errata_id} not solvable by repo #{repo}, check you are synching the latest upstream-version of the repository!")
