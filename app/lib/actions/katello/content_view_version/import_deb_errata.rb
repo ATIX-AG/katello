@@ -14,7 +14,7 @@ module Actions
           if repo.root.mirroring_policy == ::Katello::RootRepository::MIRRORING_POLICY_CONTENT
             ::Katello::RepositoryErratum.where(repository: repo).destroy_all
           end
-          import_deb_errata(repo, erratum_list, only_add_applicable: false)
+          import_deb_errata(repo, erratum_list, false)
         end
 
         def humanized_output
