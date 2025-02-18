@@ -25,6 +25,8 @@ module Actions
           target_repo.erratum_ids |= erratum_ids_to_copy
           target_repo.save
 
+          output[:copied_errata] = erratum_ids_to_copy.length
+
           # fake output to make foreman task presenter happy
           if input[:erratum_ids].present?
             units = []
