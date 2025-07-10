@@ -18,11 +18,21 @@ module Actions
               plan_action(Candlepin::Environment::SetContent, content_view, environment, content_view.content_view_environment(environment))
             end
           end
-          plan_self(repository_ids: clone_ids)
+          plan_self(content_view_id: content_view.id, repository_ids: clone_ids)
         end
 
         def run
           ::Katello::Repository.where(id: input[:repository_ids]).destroy_all
+        end
+
+        def finalize
+          env_proxies = []
+          ::Katello::ContentView.find(input[:content_view_id]).environments.each do |environment|
+            env_proxies |= SmartProxy.unscoped.with_environment(environment)
+          end
+          env_proxies.each do |proxy|
+            ForemanTasks.async_task(::Actions::Katello::CapsuleContent::UpdateContentCounts, proxy)
+          end
         end
       end
     end
