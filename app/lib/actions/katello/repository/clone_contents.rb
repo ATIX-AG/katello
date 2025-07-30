@@ -18,13 +18,6 @@ module Actions
                           SmartProxy.pulp_primary,
                           source_repositories,
                           filters: filters, rpm_filenames: rpm_filenames, solve_dependencies: solve_dependencies)
-
-              source_repositories.select(&:deb?).each do |repository|
-                plan_action(Actions::Katello::Repository::CopyDebErratum,
-                            source_repo_id: repository.id,
-                            target_repo_id: new_repository.id,
-                            clean_target_errata: true)
-              end
             end
 
             matching_content = check_matching_content(new_repository, source_repositories)
@@ -47,6 +40,16 @@ module Actions
             end
 
             plan_action(Katello::Repository::IndexContent, index_options)
+
+            if copy_contents
+              source_repositories.select(&:deb?).each do |repository|
+                plan_action(Actions::Katello::Repository::CopyDebErratum,
+                            source_repo_id: repository.id,
+                            target_repo_id: new_repository.id,
+                            clean_target_errata: true,
+                            filtered_content: filters.present?)
+              end
+            end
           end
         end
 

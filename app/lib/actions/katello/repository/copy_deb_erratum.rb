@@ -7,6 +7,7 @@ module Actions
           param :target_repo_id
           param :erratum_ids
           param :clean_target_errata
+          param :filtered_content
         end
 
         def run
@@ -17,7 +18,12 @@ module Actions
 
           erratum_ids_to_copy = []
           if input[:source_repo_id].present?
-            erratum_ids_to_copy = ::Katello::Repository.find(input[:source_repo_id])&.erratum_ids
+            src_repo = ::Katello::Repository.find(input[:source_repo_id])
+            erratum_ids_to_copy = if input[:filtered_content]
+                                    filter_errata_for_target_repo(src_repo, target_repo)
+                                  else
+                                    src_repo&.erratum_ids
+                                  end
           elsif input[:erratum_ids].present?
             erratum_ids_to_copy = ::Katello::Erratum.where(errata_id: input[:erratum_ids]).pluck(:id)
           end
@@ -38,6 +44,28 @@ module Actions
             end
             output[:pulp_tasks] = [{ :result => { :units_successful => units } }]
           end
+        end
+
+        def filter_errata_for_target_repo(src_repo, dst_repo)
+          erratum_ids = []
+          # find debs in target-repo and only copy errata that apply in respect to
+          # 1) package-name
+          dst_debs = dst_repo.debs
+          filtered_errata = src_repo.errata.joins(:deb_packages).where(deb_packages: { name: dst_debs.select(:name) }).distinct
+          # 2) package-version (expensive!?)
+          filtered_errata.each do |erratum|
+            solving_debs_in_repo = dst_repo.debs.solving_erratum_debs(erratum.deb_packages)
+            next if solving_debs_in_repo.empty?
+
+            if solving_debs_in_repo.pluck(:name).to_set == src_repo.debs.where(name: erratum.deb_packages.select(:name)).pluck(:name).to_set
+              erratum_ids << erratum.id
+              # else:
+              # Erratum cannot be fully solved by the dst_repo, so either
+              # - assume only the filtered packages are installed and therefore the other packages do not matter
+              # - packages concerned by the errata cannot be updated, because they are not part of the dst_repo
+            end
+          end
+          erratum_ids
         end
       end
     end
