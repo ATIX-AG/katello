@@ -43,14 +43,45 @@ module Actions
 
             if copy_contents
               source_repositories.select(&:deb?).each do |repository|
+                include_ids, exclude_ids = errata_ids_from_filters_for_repo(filters, repository)
                 plan_action(Actions::Katello::Repository::CopyDebErratum,
                             source_repo_id: repository.id,
                             target_repo_id: new_repository.id,
                             clean_target_errata: true,
-                            filtered_content: filters.present?)
+                            filtered_content: filters.present?,
+                            include_errata_ids: include_ids.presence,
+                            exclude_errata_ids: exclude_ids.presence)
               end
             end
           end
+        end
+
+        def errata_ids_from_filters_for_repo(filters, repository)
+          return [[], []] if filters.blank?
+          errata_filters = Array(filters).select do |f|
+            f.respond_to?(:erratum_rules) && f.erratum_rules.any?
+          end
+
+          included = []
+          excluded = []
+
+          errata_filters.each do |f|
+            if f.respond_to?(:filter_by_id?) && f.filter_by_id?
+              ids = f.erratum_rules.map(&:errata_id).compact
+            else
+              clause = f.generate_clauses(nil)
+              next unless clause
+              ids = repository.errata.where(clause).pluck(:errata_id)
+            end
+
+            if f.inclusion?
+              included |= ids
+            else
+              excluded |= ids
+            end
+          end
+
+          [included.uniq, excluded.uniq]
         end
 
         def metadata_generate(source_repositories, new_repository, filters, rpm_filenames, matching_content)
