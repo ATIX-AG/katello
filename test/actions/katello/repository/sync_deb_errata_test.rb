@@ -191,7 +191,7 @@ module Actions::Katello::Repository
         refute_includes existing_errata, 'DEBERR-1-1'
         action.finalize
         repository.errata.reload # force a reload
-        assert_equal existing_errata.append('DEBERR-1-1'), repository.errata.pluck(:errata_id)
+        assert_equal_arrays existing_errata.append('DEBERR-1-1'), repository.errata.pluck(:errata_id)
       end
     end
   end
