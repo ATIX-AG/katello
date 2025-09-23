@@ -7,6 +7,9 @@ module Actions
           def plan(repository, smart_proxy, file, unit_type_id)
             sequence do
               if repository.deb?
+                if repository.version_href.ends_with?("/1/")
+                  repository.backend_service(smart_proxy).destroy_empty_metadata
+                end
                 upload_action_output = plan_action(Pulp3::Repository::UploadFile, repository, smart_proxy, file[:path]).output
                 artifact_action_output = plan_action(Pulp3::Repository::SaveArtifact, file, repository, smart_proxy, upload_action_output[:pulp_tasks], unit_type_id).output
               else

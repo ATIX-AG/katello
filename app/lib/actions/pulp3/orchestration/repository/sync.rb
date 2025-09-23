@@ -7,6 +7,9 @@ module Actions
           def plan(repository, smart_proxy, options)
             sequence do
               plan_action(Actions::Pulp3::Repository::RefreshRemote, repository, smart_proxy)
+              if repository.deb? && repository.version_href.ends_with?("/1/")
+                repository.backend_service(smart_proxy).destroy_empty_metadata
+              end
               action_output = plan_action(Actions::Pulp3::Repository::Sync, repository, smart_proxy, options).output
 
               force_fetch_version = true if options[:optimize] == false
