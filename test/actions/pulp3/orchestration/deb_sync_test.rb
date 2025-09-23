@@ -43,7 +43,8 @@ module ::Actions::Pulp3
       ForemanTasks.sync_task(::Actions::Pulp3::Orchestration::AlternateContentSource::Refresh, smart_proxy_acs)
 
       sync_args = { smart_proxy_id: @primary.id, repo_id: @repo.id }
-      @repo.update(publication_href: nil, version_href: nil)
+      @repo.update(publication_href: nil,
+                   version_href: '/pulp/api/v3/repositories/deb/apt/019c22e3-8afe-78cd-bf6d-c3d408a76db5/versions/3/')
 
       ForemanTasks.sync_task(::Actions::Pulp3::Orchestration::Repository::Sync, @repo, @primary, sync_args)
       @repo.reload

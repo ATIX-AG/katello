@@ -23,6 +23,7 @@ module Actions::Katello::Repository
       let(:reposync_action_class) { ::Actions::Katello::Repository::Sync }
       before do
         repository.root.deb_errata_url = 'https://dep.example.com'
+        repository.version_href = '/pulp/api/v3/repositories/deb/apt/019c22e3-8afe-78cd-bf6d-c3d408a76db5/versions/3/'
         repository.save!
       end
       it 'plans' do
