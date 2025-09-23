@@ -84,7 +84,7 @@ module Actions
 
         def resolve_content_view_for_repo(repo)
           cvr = ::Katello::ContentViewRepository.where(repository_id: repo.id).first
-          return cvr.content_view_version.content_view if cvr&.content_view_version
+          return cvr.content_view if cvr&.content_view
 
           cvv = repo.try(:content_view_version) || repo.try(:root)&.try(:content_view_version)
           cvv&.content_view

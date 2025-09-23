@@ -109,6 +109,56 @@ module Actions::Katello::Repository
       end
     end
 
+    context 'resolve_content_view_for_repo' do
+      it 'returns CV from ContentViewRepository when presen' do
+        repo = stub(id: 999)
+        cv = stub(:content_view)
+        cvr = stub(content_view: cv)
+
+        ::Katello::ContentViewRepository.stubs(:where).with(repository_id: repo.id).returns([cvr])
+
+        assert_equal cv, action.send(:resolve_content_view_for_repo, repo)
+      end
+
+      it 'falls back to repo.content_view_version.conten_view no CVR exists' do
+        repo = stub(id: 1000)
+        cv = stub(:content_view)
+        cvv = stub(content_view: cv)
+
+        ::Katello::ContentViewRepository.stubs(:where).with(repository_id: repo.id).returns([])
+
+        repo.stubs(:content_view_version).returns(cvv)
+        repo.stubs(:root).returns(nil)
+
+        assert_equal cv, action.send(:resolve_content_view_for_repo, repo)
+      end
+
+      it 'falls back to repo.root.content_view_version.content_view when direct CVV missing' do
+        repo = stub(id: 1001)
+        cv = stub(:content_view)
+        cvv = stub(content_view: cv)
+        root = stub(content_view_version: cvv)
+
+        ::Katello::ContentViewRepository.stubs(:where).with(repository_id: repo.id).returns([])
+
+        repo.stubs(:content_view_version).returns(nil)
+        repo.stubs(:root).returns(root)
+
+        assert_equal cv, action.send(:resolve_content_view_for_repo, repo)
+      end
+
+      it 'returns nil when no CV is resolvable' do
+        repo = stub(id: 1002)
+
+        ::Katello::ContentViewRepository.stubs(:where).with(repository_id: repo.id).returns([])
+
+        repo.stubs(:content_view_version).returns(nil)
+        repo.stubs(:root).returns(nil)
+
+        assert_nil action.send(:resolve_content_view_for_repo, repo)
+      end
+    end
+
     context 'with filter_errata_for_target_repo()' do
       it 'keeps all errata if no changed content in new repo' do
         dst_repo.debs = src_repo.debs
