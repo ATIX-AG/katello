@@ -14,11 +14,7 @@ module ::Actions::Pulp3
       assert_equal 1,
         Katello::Pulp3::DistributionReference.where(repository_id: @repo.id).count,
         "Expected a distribution reference."
-      @repo.root.update(
-        verify_ssl_on_sync: false,
-        ssl_ca_cert: katello_gpg_keys(:unassigned_gpg_key),
-        ssl_client_cert: katello_gpg_keys(:unassigned_gpg_key),
-        ssl_client_key: katello_gpg_keys(:unassigned_gpg_key))
+      @repo.root.update(verify_ssl_on_sync: false)
     end
 
     def teardown
@@ -58,8 +54,8 @@ module ::Actions::Pulp3
         @repo,
         @primary)
 
-      yum_remote = ::Katello::Pulp3::Api::Apt.new(@primary).remotes_api
-      assert_equal yum_remote.list.results.find { |remote| remote.name == "Debian_10_duplicate" }.policy, "on_demand"
+      apt_remote = ::Katello::Pulp3::Api::Apt.new(@primary).remotes_api
+      assert_equal apt_remote.list.results.find { |remote| remote.name == "Debian_10_duplicate" }.policy, "on_demand"
     end
   end
 
