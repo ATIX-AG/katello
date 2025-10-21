@@ -11,7 +11,11 @@ module Katello
     self.table_name = :katello_alternate_content_sources
 
     ACS_TYPES = %w(custom simplified rhui).freeze
-    CONTENT_TYPES = [::Katello::Repository::YUM_TYPE, ::Katello::Repository::FILE_TYPE].freeze
+    CONTENT_TYPES = [
+      ::Katello::Repository::YUM_TYPE,
+      ::Katello::Repository::FILE_TYPE,
+      ::Katello::Repository::DEB_TYPE,
+    ].freeze
     AUDIT_REFRESH_ACTION = 'refresh'.freeze
 
     encrypts :upstream_password
