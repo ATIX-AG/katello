@@ -16,7 +16,7 @@ import { areSubPathsValid, isValidUrl } from '../../helpers';
 
 const AcsUrlPaths = () => {
   const {
-    acsType, url, setUrl, subpaths, setSubpaths,
+    acsType, url, setUrl, subpaths, setSubpaths, contentType,
   } = useContext(ACSCreateContext);
 
   const urlValidated = (url === '' || isValidUrl(url, acsType)) ? 'default' : 'error';
@@ -33,6 +33,10 @@ const AcsUrlPaths = () => {
   headerDescription = acsType === 'rhui' ?
     `${headerDescription}${__(' The base path must be a web address pointing to the root RHUI content directory.')}` :
     `${headerDescription}${__(' The base path can be a web address or a filesystem location.')}`;
+
+  const debHint = contentType === 'deb'
+    ? __(' Example APT subpaths: dists/bookworm/main/binary-amd64, pool/main',)
+    : '';
 
   return (
     <>
@@ -101,6 +105,13 @@ const AcsUrlPaths = () => {
                 </HelperTextItem>
               </HelperText>
             </FormHelperText>)}
+          {subPathValidated === 'default' && debHint && (
+            <FormHelperText>
+              <HelperText>
+                <HelperTextItem>{debHint}</HelperTextItem>
+              </HelperText>
+            </FormHelperText>
+          )}
         </FormGroup>
       </Form>
     </>
