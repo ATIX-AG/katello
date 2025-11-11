@@ -2,5 +2,5 @@
 include:
   - project: 'orcharhino/foreman_components/foreman_testing_ci_template'
     file: 'plugin.gitlab-ci.yml'
-    ref: '3.9.1'
+    ref: '3.9.2'
 ...
