@@ -97,6 +97,7 @@ module Katello
                                 .joins(:repositories => :distribution_references)
                                 .pluck(:href)
           pulp_distributions = api.distributions_list_all
+          log_orphan_cleanup_protected_count('distributions', pulp_distributions) { |dist| self.class.orphan_cleanup_protected_distribution?(dist) }
           pulp_distributions.reject! { |distribution| self.class.orphan_cleanup_protected_distribution?(distribution) }
           pulp_dist_hrefs = pulp_distributions.map(&:pulp_href)
           distribution_map[api] = pulp_dist_hrefs - katello_dist_hrefs
@@ -123,6 +124,7 @@ module Katello
           repos = api.list_all
           protected_repo_hrefs = self.class.orphan_cleanup_protected_repo_hrefs(repos)
           versions = api.repository_versions
+          log_orphan_cleanup_protected_count('repository_versions', versions) { |rv| protected_repo_hrefs.include?(repository_href_for_version(rv)) }
           versions.reject! { |repo_version| protected_repo_hrefs.include?(repository_href_for_version(repo_version)) }
           version_hrefs = versions.select { |repo_version| repo_version.number != 0 }.map(&:pulp_href)
           repo_version_map[api] = version_hrefs - ::Katello::Repository.where(version_href: version_hrefs).pluck(:version_href)
@@ -146,6 +148,7 @@ module Katello
         pulp3_enabled_repo_types(false).each do |repo_type|
           api = repo_type.pulp3_service_class.api(smart_proxy)
           repos = api.list_all
+          log_orphan_cleanup_protected_count('repositories', repos) { |repo| self.class.orphan_cleanup_protected_name?(repo.name) }
           repos.reject! { |repo| self.class.orphan_cleanup_protected_name?(repo.name) }
           repo_hrefs = repos.map(&:pulp_href)
           repo_map[api] = repo_hrefs - ::Katello::Pulp3::RepositoryReference.where(repository_href: repo_hrefs).pluck(:repository_href)
@@ -186,6 +189,21 @@ module Katello
         return repo_version.repository if repo_version.respond_to?(:repository)
         return repo_version.repository_href if repo_version.respond_to?(:repository_href)
         nil
+      end
+
+      def log_orphan_cleanup_protected_count(label, items)
+        prefix = self.class.orphan_cleanup_protected_prefix
+        return if prefix.empty? || items.blank?
+        protected_count = items.count { |item| yield(item) }
+        return if protected_count.zero?
+        message = "Orphan cleanup: skipping #{protected_count} protected #{label} with prefix '#{prefix}' on smart proxy #{smart_proxy&.id}"
+        write_orphan_log(message)
+      end
+
+      def write_orphan_log(message)
+        File.open('/tmp/orphan_log.txt', 'a') do |file|
+          file.puts("[#{Time.now.utc.iso8601}] #{message}")
+        end
       end
     end
   end

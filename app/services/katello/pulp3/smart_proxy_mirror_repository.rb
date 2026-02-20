@@ -14,6 +14,7 @@ module Katello
         pulp3_enabled_repo_types.each do |repo_type|
           api = repo_type.pulp3_api(smart_proxy)
           repos = api.list_all
+          log_orphan_cleanup_protected_count('repositories', repos) { |repo| self.class.orphan_cleanup_protected_name?(repo.name) }
           repos.reject! { |capsule_repo| self.class.orphan_cleanup_protected_name?(capsule_repo.name) }
           repo_map[api] = repos.reject { |capsule_repo| katello_pulp_ids.include? capsule_repo.name }
         end
@@ -173,6 +174,7 @@ module Katello
           api = repo_type.pulp3_api(smart_proxy)
           remotes = api.remotes_list_all(smart_proxy)
 
+          log_orphan_cleanup_protected_count('remotes', remotes) { |remote| self.class.orphan_cleanup_protected_name?(remote.name) }
           remotes.each do |remote|
             next if self.class.orphan_cleanup_protected_name?(remote.name)
             if !repo_names.include?(remote.name) && !acs_remotes.include?(remote.pulp_href)
@@ -181,6 +183,21 @@ module Katello
           end
         end
         tasks
+      end
+
+      def log_orphan_cleanup_protected_count(label, items)
+        prefix = self.class.orphan_cleanup_protected_prefix
+        return if prefix.empty? || items.blank?
+        protected_count = items.count { |item| yield(item) }
+        return if protected_count.zero?
+        message = "Orphan cleanup: skipping #{protected_count} protected #{label} with prefix '#{prefix}' on smart proxy #{smart_proxy&.id}"
+        write_orphan_log(message)
+      end
+
+      def write_orphan_log(message)
+        File.open('/tmp/orphan_log.txt', 'a') do |file|
+          file.puts("[#{Time.now.utc.iso8601}] #{message}")
+        end
       end
     end
   end
