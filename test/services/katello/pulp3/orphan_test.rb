@@ -76,6 +76,29 @@ module Katello
           assert_empty delete_orphan_tasks[:errors]
         end
       end
+
+      class RepositoryOrphanProtectedTest < RepositoryOrphanBaseTest
+        def setup
+          User.current = users(:admin)
+          @primary = SmartProxy.pulp_primary
+          @smart_proxy_service = Katello::Pulp3::SmartProxyRepository.new(@primary)
+          @old_orphan_cleanup_protected_prefix = Setting[:orphan_cleanup_protected_prefix]
+          Setting[:orphan_cleanup_protected_prefix] = 'orphan-protected__'
+          @protected_repo_name = "#{Setting[:orphan_cleanup_protected_prefix]}direct_pulp_file_repo"
+          @file_api = ::Katello::Pulp3::Api::File.new(@primary)
+          @protected_repo_href = @file_api.repositories_api.create(name: @protected_repo_name).pulp_href
+        end
+
+        def teardown
+          @file_api.repositories_api.delete(@protected_repo_href) if @protected_repo_href
+          Setting[:orphan_cleanup_protected_prefix] = @old_orphan_cleanup_protected_prefix
+        end
+
+        def test_orphan_repositories_skip_protected_repositories
+          orphans = @smart_proxy_service.orphan_repositories.collect { |_api, repo_hrefs| repo_hrefs }.flatten
+          refute_includes orphans, @protected_repo_href
+        end
+      end
     end
   end
 end
