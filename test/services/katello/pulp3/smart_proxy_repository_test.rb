@@ -1,10 +1,19 @@
 require 'katello_test_helper'
 require 'support/pulp3_support'
+require 'ostruct'
 
 module Katello
   module Pulp3
     class SmartProxyMirrorRepositoryTest < ActiveSupport::TestCase
       include Katello::Pulp3Support
+
+      def setup
+        @old_orphan_cleanup_protected_prefix = Setting[:orphan_cleanup_protected_prefix]
+      end
+
+      def teardown
+        Setting[:orphan_cleanup_protected_prefix] = @old_orphan_cleanup_protected_prefix
+      end
 
       def test_delete_orphan_remotes
         proxy = smart_proxies(:four)
@@ -29,15 +38,65 @@ module Katello
 
         assert_equal ['rhel-7-gone'], smart_proxy_mirror_repo.delete_orphan_remotes
       end
+
+      def test_delete_orphan_remotes_skips_protected_prefix
+        proxy = smart_proxies(:four)
+        fedora = katello_repositories(:fedora_17_x86_64)
+        protected_remote_href = '/protected/href'
+        orphan_remote_href = '/orphan/href'
+        smart_proxy_mirror_repo = ::Katello::Pulp3::SmartProxyMirrorRepository.new(proxy)
+        Setting[:orphan_cleanup_protected_prefix] = 'orphan-protected__'
+        ::Katello::SmartProxyAlternateContentSource.destroy_all
+        smart_proxy_mirror_repo.stubs(:write_orphan_log)
+
+        pulp_remotes = [
+          PulpRpmClient::RpmRpmRemoteResponse.new(name: "orphan-protected__#{fedora.pulp_id}", pulp_href: protected_remote_href),
+          PulpRpmClient::RpmRpmRemoteResponse.new(name: fedora.pulp_id, pulp_href: '/fedora/href'),
+          PulpRpmClient::RpmRpmRemoteResponse.new(name: 'orphan-remote', pulp_href: orphan_remote_href),
+        ]
+
+        smart_proxy_mirror_repo.expects(:pulp3_enabled_repo_types).once.returns([::Katello::RepositoryTypeManager.find(:yum)])
+        ::Katello::SmartProxyHelper.any_instance.expects(:combined_repos_available_to_capsule).once.returns([fedora])
+        ::Katello::Pulp3::Api::Yum.any_instance.expects(:remotes_list_all).once.returns(pulp_remotes)
+        ::Katello::Pulp3::Api::Yum.any_instance.expects(:delete_remote).once.with(orphan_remote_href).returns('orphan-gone')
+
+        assert_equal ['orphan-gone'], smart_proxy_mirror_repo.delete_orphan_remotes
+      end
+
+      def test_orphaned_repositories_skips_protected_ansible_content
+        proxy = smart_proxies(:four)
+        smart_proxy_mirror_repo = ::Katello::Pulp3::SmartProxyMirrorRepository.new(proxy)
+        Setting[:orphan_cleanup_protected_prefix] = 'orphan-protected__'
+        smart_proxy_mirror_repo.stubs(:write_orphan_log)
+        api = mock
+        repo_type = mock
+        protected_repo = OpenStruct.new(name: 'orphan-protected__ansible-collection')
+        known_repo = OpenStruct.new(name: 'ansible-known')
+        orphan_repo = OpenStruct.new(name: 'ansible-orphan')
+        known_capsule_repo = OpenStruct.new(pulp_id: known_repo.name)
+
+        smart_proxy_mirror_repo.expects(:pulp3_enabled_repo_types).once.returns([repo_type])
+        repo_type.expects(:pulp3_api).with(proxy).once.returns(api)
+        api.expects(:list_all).once.returns([protected_repo, known_repo, orphan_repo])
+        ::Katello::SmartProxyHelper.any_instance.expects(:combined_repos_available_to_capsule).once.returns([known_capsule_repo])
+
+        result = smart_proxy_mirror_repo.orphaned_repositories
+        assert_equal [orphan_repo], result[api]
+      end
     end
 
     class SmartProxyMirrorRepositoryOrphanRepositoryVersionsTest < ActiveSupport::TestCase
       include Katello::Pulp3Support
 
       def setup
+        @old_orphan_cleanup_protected_prefix = Setting[:orphan_cleanup_protected_prefix]
         @proxy = FactoryBot.create(:smart_proxy, :pulp_mirror, :with_pulp3)
         @proxy.stubs(:pulp_primary?).returns(false)
         @smart_proxy_mirror_repo = ::Katello::Pulp3::SmartProxyMirrorRepository.new(@proxy)
+      end
+
+      def teardown
+        Setting[:orphan_cleanup_protected_prefix] = @old_orphan_cleanup_protected_prefix
       end
 
       def test_distributed_version_hrefs_are_skipped
@@ -90,14 +149,59 @@ module Katello
         errors = @smart_proxy_mirror_repo.report_misconfigured_repository_version(api, ver_href)
         assert_equal errors, []
       end
+
+      def test_orphan_repository_versions_skips_protected_repositories
+        Setting[:orphan_cleanup_protected_prefix] = 'orphan-protected__'
+        @smart_proxy_mirror_repo.stubs(:write_orphan_log)
+        api = mock
+        repo_type = mock
+        protected_repo = OpenStruct.new(name: 'orphan-protected__repo', pulp_href: '/pulp/repos/protected', latest_version_href: '/pulp/versions/protected/latest')
+        repo = OpenStruct.new(name: 'repo', pulp_href: '/pulp/repos/repo', latest_version_href: '/pulp/versions/repo/latest')
+        protected_version = OpenStruct.new(number: 1, pulp_href: '/pulp/versions/protected/1')
+        orphan_version = OpenStruct.new(number: 1, pulp_href: '/pulp/versions/repo/1')
+
+        @smart_proxy_mirror_repo.expects(:pulp3_enabled_repo_types).once.returns([repo_type])
+        repo_type.expects(:pulp3_api).with(@proxy).once.returns(api)
+        api.expects(:repository_versions).once.returns([])
+        api.expects(:list_all).once.returns([protected_repo, repo])
+        api.expects(:versions_list_for_repository).once.with(repo.pulp_href, ordering: ['-pulp_created']).returns([protected_version, orphan_version])
+
+        result = @smart_proxy_mirror_repo.orphan_repository_versions
+        assert_equal [orphan_version.pulp_href], result[api]
+      end
+
+      def test_orphan_repository_versions_skips_protected_container_repositories
+        Setting[:orphan_cleanup_protected_prefix] = 'orphan-protected__'
+        @smart_proxy_mirror_repo.stubs(:write_orphan_log)
+        api = mock
+        repo_type = mock
+        protected_repo = OpenStruct.new(name: 'orphan-protected__container', pulp_href: '/pulp/repos/container/protected', latest_version_href: '/pulp/versions/container/protected/latest')
+        repo = OpenStruct.new(name: 'container', pulp_href: '/pulp/repos/container', latest_version_href: '/pulp/versions/container/latest')
+        protected_version = OpenStruct.new(number: 1, pulp_href: '/pulp/versions/container/protected/1')
+        orphan_version = OpenStruct.new(number: 1, pulp_href: '/pulp/versions/container/1')
+
+        @smart_proxy_mirror_repo.expects(:pulp3_enabled_repo_types).once.returns([repo_type])
+        repo_type.expects(:pulp3_api).with(@proxy).once.returns(api)
+        api.expects(:repository_versions).once.returns([])
+        api.expects(:list_all).once.returns([protected_repo, repo])
+        api.expects(:versions_list_for_repository).once.with(repo.pulp_href, ordering: ['-pulp_created']).returns([protected_version, orphan_version])
+
+        result = @smart_proxy_mirror_repo.orphan_repository_versions
+        assert_equal [orphan_version.pulp_href], result[api]
+      end
     end
 
     class SmartProxyRepositoryOrphanRepositoryVersionsTest < ActiveSupport::TestCase
       include Katello::Pulp3Support
 
       def setup
+        @old_orphan_cleanup_protected_prefix = Setting[:orphan_cleanup_protected_prefix]
         @primary = ::SmartProxy.pulp_primary
         @smart_proxy_repo = ::Katello::Pulp3::SmartProxyRepository.new(@primary)
+      end
+
+      def teardown
+        Setting[:orphan_cleanup_protected_prefix] = @old_orphan_cleanup_protected_prefix
       end
 
       def test_distributed_version_hrefs_are_skipped
@@ -166,6 +270,154 @@ module Katello
 
         errors = @smart_proxy_repo.report_misconfigured_repository_version(api, ver_href)
         assert_equal errors, []
+      end
+
+      def test_orphan_repository_versions_skips_versions_for_protected_repositories
+        Setting[:orphan_cleanup_protected_prefix] = 'orphan-protected__'
+        @smart_proxy_repo.stubs(:write_orphan_log)
+        api = mock
+        repo_type = mock
+        protected_repo = OpenStruct.new(name: 'orphan-protected__repo', pulp_href: '/pulp/repos/protected')
+        repo = OpenStruct.new(name: 'repo', pulp_href: '/pulp/repos/repo')
+        protected_version = OpenStruct.new(number: 1, pulp_href: '/pulp/versions/protected/1', repository: protected_repo.pulp_href)
+        orphan_version = OpenStruct.new(number: 1, pulp_href: '/pulp/versions/repo/1', repository: repo.pulp_href)
+        where_scope = mock
+
+        @smart_proxy_repo.expects(:pulp3_enabled_repo_types).once.returns([repo_type])
+        repo_type.expects(:pulp3_api).with(@primary).once.returns(api)
+        api.expects(:list_all).once.returns([protected_repo, repo])
+        api.expects(:repository_versions).once.returns([protected_version, orphan_version])
+        ::Katello::Repository.expects(:where).once.with(version_href: [orphan_version.pulp_href]).returns(where_scope)
+        where_scope.expects(:pluck).once.with(:version_href).returns([])
+
+        result = @smart_proxy_repo.orphan_repository_versions
+        assert_equal [orphan_version.pulp_href], result[api]
+      end
+
+      def test_orphan_repository_versions_skips_versions_for_protected_ansible_repositories
+        Setting[:orphan_cleanup_protected_prefix] = 'orphan-protected__'
+        @smart_proxy_repo.stubs(:write_orphan_log)
+        api = mock
+        repo_type = mock
+        protected_repo = OpenStruct.new(name: 'orphan-protected__ansible', pulp_href: '/pulp/repos/ansible/protected')
+        repo = OpenStruct.new(name: 'ansible', pulp_href: '/pulp/repos/ansible')
+        protected_version = OpenStruct.new(number: 1, pulp_href: '/pulp/versions/ansible/protected/1', repository: protected_repo.pulp_href)
+        orphan_version = OpenStruct.new(number: 1, pulp_href: '/pulp/versions/ansible/1', repository: repo.pulp_href)
+        where_scope = mock
+
+        @smart_proxy_repo.expects(:pulp3_enabled_repo_types).once.returns([repo_type])
+        repo_type.expects(:pulp3_api).with(@primary).once.returns(api)
+        api.expects(:list_all).once.returns([protected_repo, repo])
+        api.expects(:repository_versions).once.returns([protected_version, orphan_version])
+        ::Katello::Repository.expects(:where).once.with(version_href: [orphan_version.pulp_href]).returns(where_scope)
+        where_scope.expects(:pluck).once.with(:version_href).returns([])
+
+        result = @smart_proxy_repo.orphan_repository_versions
+        assert_equal [orphan_version.pulp_href], result[api]
+      end
+    end
+
+    class SmartProxyRepositoryOrphanRepositoriesProtectedContentTypesTest < ActiveSupport::TestCase
+      def setup
+        @old_orphan_cleanup_protected_prefix = Setting[:orphan_cleanup_protected_prefix]
+        @primary = ::SmartProxy.pulp_primary
+        @smart_proxy_repo = ::Katello::Pulp3::SmartProxyRepository.new(@primary)
+      end
+
+      def teardown
+        Setting[:orphan_cleanup_protected_prefix] = @old_orphan_cleanup_protected_prefix
+      end
+
+      def test_orphan_repositories_skips_protected_ansible_repositories
+        Setting[:orphan_cleanup_protected_prefix] = 'orphan-protected__'
+        @smart_proxy_repo.stubs(:write_orphan_log)
+        api = mock
+        repo_type = mock
+        service_class = mock
+        protected_repo = OpenStruct.new(name: 'orphan-protected__ansible-repo', pulp_href: '/pulp/repos/ansible/protected')
+        tracked_repo = OpenStruct.new(name: 'ansible-tracked', pulp_href: '/pulp/repos/ansible/tracked')
+        orphan_repo = OpenStruct.new(name: 'ansible-orphan', pulp_href: '/pulp/repos/ansible/orphan')
+        where_scope = mock
+
+        @smart_proxy_repo.expects(:pulp3_enabled_repo_types).once.with(false).returns([repo_type])
+        repo_type.expects(:pulp3_service_class).once.returns(service_class)
+        service_class.expects(:api).once.with(@primary).returns(api)
+        api.expects(:list_all).once.returns([protected_repo, tracked_repo, orphan_repo])
+        ::Katello::Pulp3::RepositoryReference.expects(:where).once.with(repository_href: [tracked_repo.pulp_href, orphan_repo.pulp_href]).returns(where_scope)
+        where_scope.expects(:pluck).once.with(:repository_href).returns([tracked_repo.pulp_href])
+
+        result = @smart_proxy_repo.orphan_repositories
+        assert_equal [orphan_repo.pulp_href], result[api]
+      end
+
+      def test_orphan_repositories_skips_protected_container_repositories
+        Setting[:orphan_cleanup_protected_prefix] = 'orphan-protected__'
+        @smart_proxy_repo.stubs(:write_orphan_log)
+        api = mock
+        repo_type = mock
+        service_class = mock
+        protected_repo = OpenStruct.new(name: 'orphan-protected__container-repo', pulp_href: '/pulp/repos/container/protected')
+        tracked_repo = OpenStruct.new(name: 'container-tracked', pulp_href: '/pulp/repos/container/tracked')
+        orphan_repo = OpenStruct.new(name: 'container-orphan', pulp_href: '/pulp/repos/container/orphan')
+        where_scope = mock
+
+        @smart_proxy_repo.expects(:pulp3_enabled_repo_types).once.with(false).returns([repo_type])
+        repo_type.expects(:pulp3_service_class).once.returns(service_class)
+        service_class.expects(:api).once.with(@primary).returns(api)
+        api.expects(:list_all).once.returns([protected_repo, tracked_repo, orphan_repo])
+        ::Katello::Pulp3::RepositoryReference.expects(:where).once.with(repository_href: [tracked_repo.pulp_href, orphan_repo.pulp_href]).returns(where_scope)
+        where_scope.expects(:pluck).once.with(:repository_href).returns([tracked_repo.pulp_href])
+
+        result = @smart_proxy_repo.orphan_repositories
+        assert_equal [orphan_repo.pulp_href], result[api]
+      end
+    end
+
+    class SmartProxyMirrorRepositoryOrphanDistributionProtectionTest < ActiveSupport::TestCase
+      def setup
+        @old_orphan_cleanup_protected_prefix = Setting[:orphan_cleanup_protected_prefix]
+        Setting[:orphan_cleanup_protected_prefix] = 'orphan-protected__'
+      end
+
+      def teardown
+        Setting[:orphan_cleanup_protected_prefix] = @old_orphan_cleanup_protected_prefix
+      end
+
+      def test_orphan_distribution_returns_false_for_protected_name
+        dist = OpenStruct.new(
+          name: 'orphan-protected__repo',
+          base_path: '/path/repo',
+          publication: nil,
+          repository: nil,
+          repository_version: nil
+        )
+
+        refute Katello::Pulp3::SmartProxyMirrorRepository.orphan_distribution?(dist)
+      end
+
+      def test_orphan_distribution_returns_false_for_protected_base_path
+        dist = OpenStruct.new(
+          name: 'repo',
+          base_path: '/library/orphan-protected__repo',
+          publication: nil,
+          repository: nil,
+          repository_version: nil
+        )
+
+        refute Katello::Pulp3::SmartProxyMirrorRepository.orphan_distribution?(dist)
+      end
+
+      def test_orphan_distribution_non_protected_still_uses_existing_logic
+        dist = OpenStruct.new(
+          name: 'repo',
+          base_path: '/library/repo',
+          publication: nil,
+          repository: nil,
+          repository_version: nil
+        )
+        ::Katello::Repository.expects(:pluck).once.with(:pulp_id).returns([])
+
+        assert Katello::Pulp3::SmartProxyMirrorRepository.orphan_distribution?(dist)
       end
     end
 
