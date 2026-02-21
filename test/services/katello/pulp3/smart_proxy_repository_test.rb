@@ -157,14 +157,13 @@ module Katello
         repo_type = mock
         protected_repo = OpenStruct.new(name: 'orphan-protected__repo', pulp_href: '/pulp/repos/protected', latest_version_href: '/pulp/versions/protected/latest')
         repo = OpenStruct.new(name: 'repo', pulp_href: '/pulp/repos/repo', latest_version_href: '/pulp/versions/repo/latest')
-        protected_version = OpenStruct.new(number: 1, pulp_href: '/pulp/versions/protected/1')
         orphan_version = OpenStruct.new(number: 1, pulp_href: '/pulp/versions/repo/1')
 
         @smart_proxy_mirror_repo.expects(:pulp3_enabled_repo_types).once.returns([repo_type])
         repo_type.expects(:pulp3_api).with(@proxy).once.returns(api)
         api.expects(:repository_versions).once.returns([])
         api.expects(:list_all).once.returns([protected_repo, repo])
-        api.expects(:versions_list_for_repository).once.with(repo.pulp_href, ordering: ['-pulp_created']).returns([protected_version, orphan_version])
+        api.expects(:versions_list_for_repository).once.with(repo.pulp_href, ordering: ['-pulp_created']).returns([orphan_version])
 
         result = @smart_proxy_mirror_repo.orphan_repository_versions
         assert_equal [orphan_version.pulp_href], result[api]
@@ -177,14 +176,13 @@ module Katello
         repo_type = mock
         protected_repo = OpenStruct.new(name: 'orphan-protected__container', pulp_href: '/pulp/repos/container/protected', latest_version_href: '/pulp/versions/container/protected/latest')
         repo = OpenStruct.new(name: 'container', pulp_href: '/pulp/repos/container', latest_version_href: '/pulp/versions/container/latest')
-        protected_version = OpenStruct.new(number: 1, pulp_href: '/pulp/versions/container/protected/1')
         orphan_version = OpenStruct.new(number: 1, pulp_href: '/pulp/versions/container/1')
 
         @smart_proxy_mirror_repo.expects(:pulp3_enabled_repo_types).once.returns([repo_type])
         repo_type.expects(:pulp3_api).with(@proxy).once.returns(api)
         api.expects(:repository_versions).once.returns([])
         api.expects(:list_all).once.returns([protected_repo, repo])
-        api.expects(:versions_list_for_repository).once.with(repo.pulp_href, ordering: ['-pulp_created']).returns([protected_version, orphan_version])
+        api.expects(:versions_list_for_repository).once.with(repo.pulp_href, ordering: ['-pulp_created']).returns([orphan_version])
 
         result = @smart_proxy_mirror_repo.orphan_repository_versions
         assert_equal [orphan_version.pulp_href], result[api]
@@ -415,7 +413,6 @@ module Katello
           repository: nil,
           repository_version: nil
         )
-        ::Katello::Repository.expects(:pluck).once.with(:pulp_id).returns([])
 
         assert Katello::Pulp3::SmartProxyMirrorRepository.orphan_distribution?(dist)
       end
