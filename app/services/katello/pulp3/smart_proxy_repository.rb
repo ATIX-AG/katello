@@ -143,8 +143,8 @@ module Katello
 
       def orphan_repositories
         repo_map = {}
-        pulp3_enabled_repo_types(false).each do |repo_type|
-          api = repo_type.pulp3_service_class.api(smart_proxy)
+        pulp3_enabled_repo_types.each do |repo_type|
+          api = repo_type.pulp3_api(smart_proxy)
           repos = api.list_all
           repos.reject! { |repo| self.class.orphan_cleanup_protected_name?(repo.name) }
           repo_hrefs = repos.map(&:pulp_href)

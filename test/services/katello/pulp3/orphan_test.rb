@@ -31,7 +31,7 @@ module Katello
         end
       end
 
-      class RepositoryOrphanTest < RepositoryOrphanBaseTest
+      class RepositoryVersionOrphanTest < RepositoryOrphanBaseTest
         def setup
           User.current = users(:admin)
           @primary = SmartProxy.pulp_primary
@@ -97,6 +97,40 @@ module Katello
         def test_orphan_repositories_skip_protected_repositories
           orphans = @smart_proxy_service.orphan_repositories.collect { |_api, repo_hrefs| repo_hrefs }.flatten
           refute_includes orphans, @protected_repo_href
+        end
+      end
+
+      class RepositoryOrphanTest < RepositoryOrphanBaseTest
+        def setup
+          User.current = users(:admin)
+          @primary = SmartProxy.pulp_primary
+          @repo = katello_repositories(:pulp3_file_1)
+          @root = @repo.root
+          @root.update(:url => 'https://fixtures.pulpproject.org/file2/')
+          ensure_creatable(@repo, @primary)
+          create_repo(@repo, @primary)
+
+          @smart_proxy_service = Katello::Pulp3::SmartProxyRepository.new(@primary)
+
+          sync_and_reload_repo(@repo, @primary)
+          @repo.destroy
+          @root.destroy
+        end
+
+        def teardown
+          ensure_creatable(@repo, @primary)
+        end
+
+        def test_orphan_repositories
+          orphans = @smart_proxy_service.orphan_repositories.collect { |_api, repos| repos }.flatten
+          refute_empty orphans
+        end
+
+        def test_delete_orphan_repositories
+          delete_orphan_tasks = @smart_proxy_service.delete_orphan_repositories
+          delete_orphan_tasks.compact.each { |task| wait_on_task(@primary, task) }
+          orphans = @smart_proxy_service.orphan_repositories.collect { |_api, repos| repos }.flatten
+          assert_empty orphans
         end
       end
     end
